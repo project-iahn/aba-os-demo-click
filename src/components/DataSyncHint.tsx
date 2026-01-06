@@ -24,7 +24,7 @@ export function DataSyncHint({ className, variant = 'default', message }: DataSy
         <Zap className="h-3.5 w-3.5 shrink-0" />
       )}
       <span>
-        {message || '※ 입력된 세션 데이터가 자동으로 추이·해석·설명 리포트로 연결됩니다.'}
+        {message || '※ 입력된 세션 데이터가 분석 및 리포트에 즉시 반영됩니다.'}
       </span>
     </div>
   );

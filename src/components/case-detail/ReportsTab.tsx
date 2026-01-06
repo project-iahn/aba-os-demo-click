@@ -386,24 +386,18 @@ ${goalStats
       )}
 
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">설명 리포트 ({reports.length}개)</h2>
-          <p className="text-sm text-muted-foreground">보호자에게 공유할 수 있는 관찰 문서입니다</p>
-        </div>
+        <h2 className="text-lg font-semibold">진행 리포트 ({reports.length}개)</h2>
         {canGenerate && sessions.length > 0 && (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2" onClick={initializeDialog}>
                 <Sparkles className="h-4 w-4" />
-                설명 리포트 생성
+                AI 리포트 생성
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>리포트 생성 옵션</DialogTitle>
-                <p className="text-sm text-muted-foreground">
-                  세션 데이터를 기반으로 보호자 설명용 문서를 생성합니다
-                </p>
               </DialogHeader>
               <div className="space-y-6 py-4">
                 {/* Period Selection */}
@@ -488,7 +482,7 @@ ${goalStats
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      데이터 분석 및 설명 리포트 생성 중...
+                      데이터 분석 및 리포트 생성 중...
                     </div>
                     <Progress value={generationProgress} className="h-2" />
                   </div>
@@ -500,7 +494,7 @@ ${goalStats
                   className="w-full gap-2"
                 >
                   <Sparkles className={`h-4 w-4 ${isGenerating ? 'animate-pulse' : ''}`} />
-                  {isGenerating ? '리포트 생성 중...' : '설명 리포트 생성'}
+                  {isGenerating ? '리포트 생성 중...' : 'AI 리포트 생성'}
                 </Button>
               </div>
             </DialogContent>
@@ -512,7 +506,7 @@ ${goalStats
         <Card className="border-dashed">
           <CardContent className="flex h-32 flex-col items-center justify-center gap-2">
             <BarChart3 className="h-8 w-8 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">세션 데이터가 있어야 설명 리포트를 생성할 수 있습니다</p>
+            <p className="text-sm text-muted-foreground">세션 데이터가 있어야 리포트를 생성할 수 있습니다</p>
           </CardContent>
         </Card>
       )}

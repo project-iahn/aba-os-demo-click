@@ -212,7 +212,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         <CardContent className="flex h-64 flex-col items-center justify-center">
           <BarChart3 className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground font-medium">분석할 세션 데이터가 없습니다</p>
-          <p className="text-sm text-muted-foreground mt-1">세션을 기록해야 보호자에게 제공할 설명 근거가 생성됩니다</p>
+          <p className="text-sm text-muted-foreground mt-1">세션을 기록하면 추이 분석이 자동으로 생성됩니다</p>
         </CardContent>
       </Card>
     );
@@ -235,24 +235,21 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
       {role === 'parent' && (
         <ParentExplainer
           title="분석 차트란?"
-          description="이 화면은 자녀의 치료 목표별 성공률과 독립성(촉진 수준) 변화를 시각적으로 보여줍니다. 아이의 성공률이 점진적으로 안정되고 있는지 확인할 수 있습니다."
+          description="이 화면은 자녀의 치료 목표별 성공률과 독립성(촉진 수준) 변화를 시각적으로 보여줍니다. 그래프가 위로 올라가면 성공률이 향상되는 것이고, 촉진 수준은 낮을수록(독립 방향) 좋습니다."
         />
       )}
 
-      {/* Data Sync Hint - reframed for interpretation */}
-      <DataSyncHint message="이 분석 화면은 리포트의 설명 내용 초안(Draft)으로 활용됩니다" />
+      {/* Data Sync Hint */}
+      <DataSyncHint />
 
-      {/* Insights Card - Prominent position, reframed as interpretation preview */}
+      {/* Insights Card - Prominent position */}
       {insights.length > 0 && (
         <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-accent/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-primary" />
-              해석 카드 · 설명 리포트 미리보기
+              해석 카드 · 데이터 기반 인사이트
             </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              이 내용이 보호자 리포트의 수치적 근거로 사용됩니다
-            </p>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
@@ -319,16 +316,15 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         </div>
       )}
 
-      {/* Success Rate Chart - reframed for explanation */}
+      {/* Success Rate Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">목표별 성공률 추이</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {role === 'parent' 
-              ? '그래프가 위로 올라갈수록 목표 달성이 잘 되고 있다는 의미입니다'
-              : '이 추이가 보호자 리포트의 "목표별 변화" 섹션 근거가 됩니다'
-            }
-          </p>
+          {role === 'parent' && (
+            <p className="text-sm text-muted-foreground">
+              그래프가 위로 올라갈수록 목표 달성이 잘 되고 있다는 의미입니다
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <div className="h-72">
