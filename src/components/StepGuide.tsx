@@ -1,4 +1,4 @@
-import { Check, Users, Target, Calendar, FileText, Share2 } from 'lucide-react';
+import { Users, Target, Calendar, FileText, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StepGuideProps {
@@ -8,16 +8,16 @@ interface StepGuideProps {
 const steps = [
   { step: 1, label: '케이스 생성', icon: Users, description: '아동 정보 등록' },
   { step: 2, label: '목표 설정', icon: Target, description: '치료 목표 정의' },
-  { step: 3, label: '세션 기록', icon: Calendar, description: '치료 데이터 입력' },
-  { step: 4, label: '리포트 생성', icon: FileText, description: '진행 보고서 작성' },
-  { step: 5, label: '보호자 공유', icon: Share2, description: '리포트 전달' },
+  { step: 3, label: '세션 기록', icon: Calendar, description: '설명 근거 확보' },
+  { step: 4, label: '설명 리포트 생성', icon: FileText, description: '관찰 요약 작성' },
+  { step: 5, label: '보호자 공유', icon: Share2, description: '신뢰 형성' },
 ];
 
 export function StepGuide({ className }: StepGuideProps) {
   return (
     <div className={cn('rounded-xl border border-border bg-card p-4', className)}>
       <p className="mb-3 text-sm font-medium text-muted-foreground">
-        ABA OS 워크플로우
+        설명 인프라 워크플로우
       </p>
       <div className="flex items-center justify-between gap-2">
         {steps.map((step, index) => (

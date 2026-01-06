@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, TrendingUp, TrendingDown, Minus, Search, ArrowUpDown, FileCheck, FileX } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, Search, ArrowUpDown, FileCheck, AlertCircle, MessageSquareText } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import type { Child } from '@/data/mockData';
 
-type SortField = 'lastSession' | 'successRate' | 'name';
+type SortField = 'explanationNeed' | 'lastSession' | 'successRate' | 'name';
 type SortDirection = 'asc' | 'desc';
 
 export default function CasesList() {
@@ -39,16 +39,16 @@ export default function CasesList() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('lastSession');
+  const [sortField, setSortField] = useState<SortField>('explanationNeed');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [newChild, setNewChild] = useState<Partial<Child>>({
     status: 'active',
     trend: 'stable',
   });
 
-  // Calculate success rate per child
+  // Calculate explanation-related stats per child
   const childStats = useMemo(() => {
-    const stats: Record<string, { successRate: number; hasReport: boolean }> = {};
+    const stats: Record<string, { successRate: number; hasReport: boolean; needsExplanation: boolean }> = {};
     const currentMonth = new Date().toISOString().slice(0, 7);
     
     children.forEach((child) => {
@@ -60,7 +60,10 @@ export default function CasesList() {
       
       const hasReport = reports.some(r => r.childId === child.id && r.period === currentMonth);
       
-      stats[child.id] = { successRate, hasReport };
+      // Check if explanation is needed (no report or declining trend)
+      const needsExplanation = !hasReport || child.trend === 'down';
+      
+      stats[child.id] = { successRate, hasReport, needsExplanation };
     });
     
     return stats;
@@ -74,11 +77,22 @@ export default function CasesList() {
         c.diagnosis.includes(searchQuery)
     );
     
-    // Sort
+    // Sort - prioritize explanation needs by default
     filtered.sort((a, b) => {
       let comparison = 0;
       
       switch (sortField) {
+        case 'explanationNeed':
+          // Sort by: needs explanation first, then by trend (down > stable > up)
+          const needA = childStats[a.id]?.needsExplanation ? 1 : 0;
+          const needB = childStats[b.id]?.needsExplanation ? 1 : 0;
+          comparison = needA - needB;
+          if (comparison === 0) {
+            const trendOrder = { down: 2, stable: 1, up: 0 };
+            comparison = (trendOrder[a.trend as keyof typeof trendOrder] || 1) - 
+                        (trendOrder[b.trend as keyof typeof trendOrder] || 1);
+          }
+          break;
         case 'lastSession':
           comparison = new Date(a.lastSessionDate || '1900-01-01').getTime() - 
                        new Date(b.lastSessionDate || '1900-01-01').getTime();
@@ -133,27 +147,28 @@ export default function CasesList() {
     navigate(`/cases/${child.id}`);
   };
 
+  // Trend badge reframed for explanation context
   const getTrendBadge = (trend: string) => {
     switch (trend) {
       case 'up':
         return (
           <Badge className="gap-1 bg-success/10 text-success border-success/20">
             <TrendingUp className="h-3 w-3" />
-            개선
+            설명 용이
           </Badge>
         );
       case 'down':
         return (
           <Badge className="gap-1 bg-destructive/10 text-destructive border-destructive/20">
             <TrendingDown className="h-3 w-3" />
-            저하
+            설명 리스크
           </Badge>
         );
       default:
         return (
           <Badge className="gap-1 bg-muted text-muted-foreground">
             <Minus className="h-3 w-3" />
-            유지
+            설명 필요
           </Badge>
         );
     }
@@ -165,14 +180,14 @@ export default function CasesList() {
       return (
         <Badge className="gap-1 bg-success/10 text-success border-success/20">
           <FileCheck className="h-3 w-3" />
-          완료
+          설명 완료
         </Badge>
       );
     }
     return (
       <Badge className="gap-1 bg-warning/10 text-warning border-warning/20">
-        <FileX className="h-3 w-3" />
-        필요
+        <AlertCircle className="h-3 w-3" />
+        설명 필요
       </Badge>
     );
   };
@@ -193,14 +208,14 @@ export default function CasesList() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* Page Header */}
+      {/* Page Header - Reframed as decision screen */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">케이스 관리</h1>
+          <h1 className="text-2xl font-bold text-foreground">설명이 필요한 케이스</h1>
           <p className="text-muted-foreground">
             {role === 'parent' 
               ? '자녀의 치료 진행 상황을 확인하세요' 
-              : '등록된 아동 목록을 확인하고 관리하세요'}
+              : '어떤 아이에게 설명이나 개입이 필요한지 판단하세요'}
           </p>
         </div>
 
@@ -323,6 +338,15 @@ export default function CasesList() {
         </div>
         <div className="flex gap-2">
           <Button 
+            variant={sortField === 'explanationNeed' ? 'secondary' : 'outline'} 
+            size="sm"
+            onClick={() => handleSort('explanationNeed')}
+            className="gap-1"
+          >
+            <MessageSquareText className="h-3 w-3" />
+            설명 필요 우선
+          </Button>
+          <Button 
             variant={sortField === 'lastSession' ? 'secondary' : 'outline'} 
             size="sm"
             onClick={() => handleSort('lastSession')}
@@ -350,9 +374,9 @@ export default function CasesList() {
             <TableRow className="table-header hover:bg-muted/50">
               <TableHead className="w-[140px]">케이스명 (아이)</TableHead>
               <TableHead className="w-[120px]">최근 세션일</TableHead>
-              <TableHead className="w-[100px] text-center">평균 성공률</TableHead>
-              <TableHead className="w-[90px] text-center">추이 상태</TableHead>
-              <TableHead className="w-[90px] text-center">리포트 상태</TableHead>
+              <TableHead className="w-[120px] text-center">설명 근거 지표</TableHead>
+              <TableHead className="w-[100px] text-center">추이 상태</TableHead>
+              <TableHead className="w-[100px] text-center">설명 상태</TableHead>
               <TableHead className="w-[80px] text-center">진행 상태</TableHead>
             </TableRow>
           </TableHeader>
