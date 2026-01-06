@@ -57,7 +57,8 @@ export function GoalsTab({ childId, goals }: GoalsTabProps) {
     setNewGoal({ category: '의사소통', status: 'active' });
   };
 
-  const canCreate = role === 'admin' || role === 'therapist';
+  // Only admin can add/edit goals, therapist is read-only for goals
+  const canCreate = role === 'admin';
 
   const getStatusColor = (status: string) => {
     switch (status) {

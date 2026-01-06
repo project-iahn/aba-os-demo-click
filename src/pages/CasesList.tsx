@@ -97,7 +97,8 @@ export default function CasesList() {
     }
   };
 
-  const canCreate = role === 'admin' || role === 'therapist';
+  // Only admin can create new cases
+  const canCreate = role === 'admin';
 
   return (
     <div className="animate-fade-in space-y-6">
