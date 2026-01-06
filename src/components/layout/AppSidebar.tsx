@@ -1,14 +1,14 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Activity, Upload } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Activity, Upload, MessageSquareText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/context/AppContext';
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: '대시보드', roles: ['admin', 'therapist', 'parent'] },
+  { to: '/', icon: LayoutDashboard, label: '설명 컨트롤 타워', roles: ['admin', 'therapist', 'parent'] },
   { to: '/cases', icon: Users, label: '케이스 (아동)', roles: ['admin', 'therapist', 'parent'] },
   { to: '/sessions', icon: Calendar, label: '치료 세션', roles: ['admin', 'therapist', 'parent'] },
-  { to: '/reports', icon: FileText, label: '진행 리포트', roles: ['admin', 'therapist', 'parent'] },
-  { to: '/migration', icon: Upload, label: '데이터 마이그레이션', roles: ['admin'] },
+  { to: '/reports', icon: FileText, label: '설명 리포트', roles: ['admin', 'therapist', 'parent'] },
+  { to: '/migration', icon: Upload, label: '기존 데이터 가져오기', roles: ['admin'] },
   { to: '/settings', icon: Settings, label: '설정', roles: ['admin', 'therapist'] },
 ];
 
@@ -23,11 +23,11 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-          <Activity className="h-5 w-5 text-primary-foreground" />
+          <MessageSquareText className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>
           <h1 className="text-lg font-bold text-sidebar-foreground">ABA OS</h1>
-          <p className="text-xs text-sidebar-muted">치료 관리 시스템</p>
+          <p className="text-xs text-sidebar-muted">설명 인프라</p>
         </div>
       </div>
 

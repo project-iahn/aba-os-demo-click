@@ -81,10 +81,10 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
     });
     setTrialData({});
 
-    // Show success toast with data sync message
+    // Show success toast with explanation framing
     toast({
       title: "세션 기록 완료",
-      description: "추이 분석 및 리포트에 즉시 반영됩니다",
+      description: "추이 분석 및 설명 리포트에 즉시 반영됩니다",
       action: (
         <div className="flex items-center gap-2 text-success">
           <CheckCircle className="h-4 w-4" />
@@ -127,6 +127,9 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
             <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>새 세션 기록</DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  이 세션 기록은 보호자 리포트와 설명 자료로 자동 변환됩니다.
+                </p>
               </DialogHeader>
               <div className="grid gap-6 py-4">
                 {/* Data sync hint */}
@@ -262,11 +265,11 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
         )}
       </div>
 
-      {/* Data sync hint for session list */}
+      {/* Data sync hint for session list - reframed */}
       {canCreate && sessions.length > 0 && (
         <DataSyncHint 
           variant="success" 
-          message="세션을 기록하면 분석 탭과 리포트에 실시간 반영됩니다"
+          message="기록된 세션은 분석 탭과 설명 리포트의 수치적 근거가 됩니다"
         />
       )}
 
@@ -276,7 +279,7 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
             <p className="text-muted-foreground">기록된 세션이 없습니다</p>
             {canCreate && (
               <p className="text-xs text-muted-foreground">
-                세션을 기록하면 분석 차트와 리포트가 자동으로 생성됩니다
+                세션을 기록해야 보호자에게 제공할 설명 근거를 확보할 수 있습니다
               </p>
             )}
           </CardContent>

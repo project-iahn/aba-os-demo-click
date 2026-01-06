@@ -21,7 +21,7 @@ export function TopBar() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="아동, 세션, 리포트 검색..."
+          placeholder="케이스, 세션, 리포트 검색..."
           className="pl-10"
         />
       </div>

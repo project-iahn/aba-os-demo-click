@@ -311,7 +311,7 @@ export default function MigrationPage() {
 
   const renderStep1 = () => (
     <div className="space-y-6">
-      {/* Entry Banner */}
+      {/* Entry Banner - Strategic weapon framing */}
       <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-accent/5">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
@@ -319,9 +319,9 @@ export default function MigrationPage() {
               <Upload className="h-7 w-7 text-primary" />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold">엑셀·수기 기록 그대로 이전하고 바로 분석하세요</h2>
+              <h2 className="text-xl font-semibold">기존 엑셀·수기 기록을 그대로 가져와 바로 설명 자료로 전환하세요</h2>
               <p className="text-muted-foreground mt-1">
-                기존 데이터를 업로드하면 차트와 리포트가 자동으로 생성됩니다. 센터가 처음부터 시작하지 않아도 됩니다.
+                기존 데이터를 업로드하면 <span className="text-primary font-medium">즉시 설명 리포트가 생성</span>됩니다. 센터가 처음부터 시작하지 않아도 됩니다.
               </p>
             </div>
           </div>
@@ -622,19 +622,19 @@ export default function MigrationPage() {
           <Card className="text-center">
             <CardContent className="pt-6">
               <p className="text-3xl font-bold text-primary">{importResult.children}</p>
-              <p className="text-sm text-muted-foreground">생성된 케이스</p>
+              <p className="text-sm text-muted-foreground">설명 대상 케이스</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="pt-6">
               <p className="text-3xl font-bold text-accent">{importResult.goals}</p>
-              <p className="text-sm text-muted-foreground">생성된 목표</p>
+              <p className="text-sm text-muted-foreground">치료 목표</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="pt-6">
               <p className="text-3xl font-bold text-success">{importResult.sessions}</p>
-              <p className="text-sm text-muted-foreground">생성된 세션</p>
+              <p className="text-sm text-muted-foreground">설명 근거 세션</p>
             </CardContent>
           </Card>
           <Card className="text-center">
@@ -647,10 +647,12 @@ export default function MigrationPage() {
       )}
 
       <Card className="border-success/30 bg-success/5">
-        <CardContent className="p-4">
-          <p className="text-sm">
-            <span className="font-medium text-success">다음 단계:</span> 가져온 데이터가 케이스 목록에 추가되었습니다. 
-            분석 탭에서 차트를 확인하고, 리포트를 생성할 수 있습니다.
+        <CardContent className="p-4 text-center">
+          <p className="text-sm font-medium">
+            기존 기록으로도 이런 설명 리포트가 즉시 생성됩니다
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            케이스 상세에서 분석 차트를 확인하고 보호자 리포트를 생성해보세요
           </p>
         </CardContent>
       </Card>
