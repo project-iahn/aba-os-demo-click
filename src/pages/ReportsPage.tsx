@@ -58,12 +58,15 @@ export default function ReportsPage() {
 
       {/* Filter */}
       <div className="flex items-center gap-4">
-        <Select value={selectedChildId} onValueChange={setSelectedChildId}>
+        <Select 
+          value={selectedChildId || "all"} 
+          onValueChange={(value) => setSelectedChildId(value === "all" ? "" : value)}
+        >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="아동 선택" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">전체</SelectItem>
+            <SelectItem value="all">전체</SelectItem>
             {children.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
