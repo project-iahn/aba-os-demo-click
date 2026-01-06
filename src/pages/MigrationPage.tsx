@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Upload, FileSpreadsheet, FileImage, FileText, 
   ArrowRight, ArrowLeft, Check, AlertTriangle, 
-  Loader2, Download, Sparkles, X
+  Loader2, Download, Sparkles, CheckCircle, XCircle
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
@@ -84,6 +84,7 @@ export default function MigrationPage() {
   const [step, setStep] = useState<Step>(1);
   const [sourceType, setSourceType] = useState<SourceType>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionProgress, setExtractionProgress] = useState(0);
   const [importRows, setImportRows] = useState<ImportRow[]>([]);
   const [fieldMapping, setFieldMapping] = useState<FieldMapping>({
     child_name: 'child_name',
@@ -153,14 +154,25 @@ export default function MigrationPage() {
 
   const handleStartExtraction = () => {
     if (sourceType === 'photo' || sourceType === 'document') {
-      // Simulate AI extraction with a loader
+      // Simulate AI extraction with progressive loading
       setIsExtracting(true);
+      setExtractionProgress(0);
+      
+      const progressInterval = setInterval(() => {
+        setExtractionProgress(prev => {
+          if (prev >= 95) return prev;
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+
       setTimeout(() => {
+        clearInterval(progressInterval);
+        setExtractionProgress(100);
         const validatedRows = sampleImportData.map(validateRow);
         setImportRows(validatedRows);
         setIsExtracting(false);
         setStep(2);
-      }, 2500);
+      }, 3000);
     } else {
       // Direct load for Excel/CSV
       const validatedRows = sampleImportData.map(validateRow);
@@ -299,8 +311,25 @@ export default function MigrationPage() {
 
   const renderStep1 = () => (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-xl font-semibold mb-2">데이터 소스 선택</h2>
+      {/* Entry Banner */}
+      <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-accent/5">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+              <Upload className="h-7 w-7 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold">엑셀·수기 기록 그대로 이전하고 바로 분석하세요</h2>
+              <p className="text-muted-foreground mt-1">
+                기존 데이터를 업로드하면 차트와 리포트가 자동으로 생성됩니다. 센터가 처음부터 시작하지 않아도 됩니다.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="text-center mb-6">
+        <h3 className="text-lg font-semibold mb-2">데이터 소스 선택</h3>
         <p className="text-muted-foreground">
           기존 데이터를 어떤 형태로 가져올지 선택하세요
         </p>
@@ -379,10 +408,26 @@ export default function MigrationPage() {
         </Card>
       )}
 
+      {(sourceType === 'photo' || sourceType === 'document') && (
+        <Card className="mt-6 border-accent/30 bg-accent/5">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">데모 모드:</span> 실제 파일 업로드 대신 샘플 데이터를 사용합니다. 
+              AI가 문서에서 세션 데이터를 추출하는 과정을 시뮬레이션합니다.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {sourceType && (
         <div className="flex justify-end">
-          <Button onClick={handleStartExtraction} className="gap-2">
-            {sourceType === 'photo' || sourceType === 'document' ? (
+          <Button onClick={handleStartExtraction} className="gap-2" disabled={isExtracting}>
+            {isExtracting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                추출 중...
+              </>
+            ) : sourceType === 'photo' || sourceType === 'document' ? (
               <>
                 <Sparkles className="h-4 w-4" />
                 AI로 데이터 추출
@@ -400,16 +445,19 @@ export default function MigrationPage() {
       {isExtracting && (
         <Card className="border-primary/50 bg-primary/5">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-4">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div>
-                <p className="font-medium">텍스트 추출 중...</p>
+                <p className="font-medium">AI가 기록을 구조화하는 중...</p>
                 <p className="text-sm text-muted-foreground">
-                  AI가 문서에서 세션 데이터를 분석하고 있습니다
+                  문서에서 아동 정보, 목표, 세션 데이터를 추출하고 있습니다
                 </p>
               </div>
             </div>
-            <Progress value={66} className="mt-4" />
+            <Progress value={extractionProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              {Math.round(extractionProgress)}% 완료
+            </p>
           </CardContent>
         </Card>
       )}
@@ -464,6 +512,29 @@ export default function MigrationPage() {
         </CardContent>
       </Card>
 
+      {/* Duplicate Handling */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">중복 처리 옵션</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup value={duplicateOption} onValueChange={(v) => setDuplicateOption(v as DuplicateOption)}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="add" id="add" />
+              <Label htmlFor="add">동일 날짜/목표 세션을 새로 추가</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="overwrite" id="overwrite" />
+              <Label htmlFor="overwrite">동일 날짜/목표 세션을 덮어쓰기</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="skip" id="skip" />
+              <Label htmlFor="skip">동일 날짜/목표 세션을 무시</Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
       {/* Data Preview */}
       <Card>
         <CardHeader>
@@ -505,15 +576,12 @@ export default function MigrationPage() {
                     <TableCell>{row.problem_count}</TableCell>
                     <TableCell>
                       {row.isValid ? (
-                        <Badge variant="secondary" className="gap-1">
-                          <Check className="h-3 w-3" />
-                          유효
-                        </Badge>
+                        <CheckCircle className="h-4 w-4 text-success" />
                       ) : (
-                        <Badge variant="destructive" className="gap-1">
-                          <X className="h-3 w-3" />
-                          {row.warnings[0]}
-                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <XCircle className="h-4 w-4 text-destructive" />
+                          <span className="text-xs text-destructive">{row.warnings.join(', ')}</span>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -524,43 +592,12 @@ export default function MigrationPage() {
         </CardContent>
       </Card>
 
-      {/* Duplicate Handling */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">중복 처리 옵션</CardTitle>
-          <CardDescription>
-            동일 날짜/동일 목표의 데이터가 이미 있을 경우 어떻게 처리할까요?
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RadioGroup value={duplicateOption} onValueChange={(v) => setDuplicateOption(v as DuplicateOption)}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="overwrite" id="overwrite" />
-              <Label htmlFor="overwrite">덮어쓰기</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="add" id="add" />
-              <Label htmlFor="add">새로 추가</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="skip" id="skip" />
-              <Label htmlFor="skip">무시</Label>
-            </div>
-          </RadioGroup>
-        </CardContent>
-      </Card>
-
-      {/* Actions */}
       <div className="flex justify-between">
         <Button variant="outline" onClick={() => setStep(1)} className="gap-2">
           <ArrowLeft className="h-4 w-4" />
-          이전
+          이전 단계
         </Button>
-        <Button 
-          onClick={handleImport} 
-          disabled={importRows.filter(r => r.isValid).length === 0}
-          className="gap-2"
-        >
+        <Button onClick={handleImport} className="gap-2">
           데이터 가져오기
           <ArrowRight className="h-4 w-4" />
         </Button>
@@ -576,43 +613,47 @@ export default function MigrationPage() {
         </div>
         <h2 className="text-xl font-semibold mb-2">데이터 가져오기 완료!</h2>
         <p className="text-muted-foreground">
-          모든 데이터가 성공적으로 시스템에 추가되었습니다
+          기존 데이터가 성공적으로 시스템에 추가되었습니다
         </p>
       </div>
 
       {importResult && (
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-base">가져오기 결과</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 rounded-lg bg-primary/5">
-                <p className="text-2xl font-bold text-primary">{importResult.children}</p>
-                <p className="text-sm text-muted-foreground">새 케이스</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-accent/5">
-                <p className="text-2xl font-bold text-accent">{importResult.goals}</p>
-                <p className="text-sm text-muted-foreground">새 목표</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-success/5">
-                <p className="text-2xl font-bold text-success">{importResult.sessions}</p>
-                <p className="text-sm text-muted-foreground">새 세션</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-muted">
-                <p className="text-2xl font-bold">{importResult.skipped}</p>
-                <p className="text-sm text-muted-foreground">스킵됨</p>
-              </div>
-            </div>
-            {importResult.warnings > 0 && (
-              <div className="mt-4 p-3 rounded-lg bg-warning/10 text-warning text-sm flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                {importResult.warnings}개 행에 경고가 있었지만 가져오기되었습니다
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <p className="text-3xl font-bold text-primary">{importResult.children}</p>
+              <p className="text-sm text-muted-foreground">생성된 케이스</p>
+            </CardContent>
+          </Card>
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <p className="text-3xl font-bold text-accent">{importResult.goals}</p>
+              <p className="text-sm text-muted-foreground">생성된 목표</p>
+            </CardContent>
+          </Card>
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <p className="text-3xl font-bold text-success">{importResult.sessions}</p>
+              <p className="text-sm text-muted-foreground">생성된 세션</p>
+            </CardContent>
+          </Card>
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <p className="text-3xl font-bold text-warning">{importResult.skipped}</p>
+              <p className="text-sm text-muted-foreground">스킵/경고</p>
+            </CardContent>
+          </Card>
+        </div>
       )}
+
+      <Card className="border-success/30 bg-success/5">
+        <CardContent className="p-4">
+          <p className="text-sm">
+            <span className="font-medium text-success">다음 단계:</span> 가져온 데이터가 케이스 목록에 추가되었습니다. 
+            분석 탭에서 차트를 확인하고, 리포트를 생성할 수 있습니다.
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="flex justify-center gap-4">
         <Button variant="outline" onClick={() => {
@@ -632,40 +673,35 @@ export default function MigrationPage() {
   );
 
   return (
-    <div className="animate-fade-in space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">데이터 마이그레이션</h1>
-        <p className="text-muted-foreground">
-          기존 Excel, 수기 기록, 문서에서 데이터를 가져와 시스템에 등록하세요
-        </p>
-      </div>
-
-      {/* Progress Steps */}
-      <div className="flex items-center justify-center gap-4">
-        {[1, 2, 3].map((s) => (
-          <div key={s} className="flex items-center gap-2">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors ${
-              step >= s 
-                ? 'bg-primary text-primary-foreground' 
-                : 'bg-muted text-muted-foreground'
-            }`}>
-              {step > s ? <Check className="h-4 w-4" /> : s}
+    <div className="animate-fade-in max-w-4xl mx-auto">
+      {/* Step Indicator */}
+      <div className="mb-8">
+        <div className="flex items-center justify-center gap-4">
+          {[1, 2, 3].map((s) => (
+            <div key={s} className="flex items-center gap-2">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                  step >= s
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {step > s ? <Check className="h-4 w-4" /> : s}
+              </div>
+              <span className={`text-sm hidden sm:inline ${step >= s ? 'text-foreground' : 'text-muted-foreground'}`}>
+                {s === 1 && '소스 선택'}
+                {s === 2 && '매핑 & 미리보기'}
+                {s === 3 && '완료'}
+              </span>
+              {s < 3 && <div className="h-[1px] w-8 bg-border hidden sm:block" />}
             </div>
-            <span className={`text-sm ${step >= s ? 'font-medium' : 'text-muted-foreground'}`}>
-              {s === 1 ? '소스 선택' : s === 2 ? '매핑 & 미리보기' : '완료'}
-            </span>
-            {s < 3 && <ArrowRight className="h-4 w-4 text-muted-foreground" />}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Step Content */}
-      <Card className="p-6">
-        {step === 1 && renderStep1()}
-        {step === 2 && renderStep2()}
-        {step === 3 && renderStep3()}
-      </Card>
+      {step === 1 && renderStep1()}
+      {step === 2 && renderStep2()}
+      {step === 3 && renderStep3()}
     </div>
   );
 }
