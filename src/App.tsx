@@ -11,6 +11,7 @@ import CaseDetail from "./pages/CaseDetail";
 import SessionsPage from "./pages/SessionsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
+import MigrationPage from "./pages/MigrationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/sessions" element={<SessionsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/migration" element={<MigrationPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>

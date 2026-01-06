@@ -39,6 +39,8 @@ interface AppContextType extends AppState {
   getSessionsByChildId: (childId: string) => Session[];
   getReportsByChildId: (childId: string) => Report[];
   getTherapistById: (id: string) => Therapist | undefined;
+  bulkImport: (data: { children: Child[]; goals: Goal[]; sessions: Session[] }) => void;
+  updateChildTrend: (childId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -52,6 +54,35 @@ const getInitialState = (): AppState => ({
   therapists: [...initialTherapists],
   centerProfile: { ...initialCenterProfile },
 });
+
+// Helper to calculate trend based on recent sessions
+const calculateTrend = (sessions: Session[]): 'up' | 'down' | 'stable' => {
+  if (sessions.length < 4) return 'stable';
+  
+  const sortedSessions = [...sessions].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  const recentSessions = sortedSessions.slice(0, 4);
+  const olderSessions = sortedSessions.slice(4, 8);
+  
+  if (olderSessions.length === 0) return 'stable';
+  
+  const getAvgSuccessRate = (sessions: Session[]) => {
+    const allTrials = sessions.flatMap(s => s.trials);
+    if (allTrials.length === 0) return 0;
+    const totalTrials = allTrials.reduce((acc, t) => acc + t.trials, 0);
+    const totalSuccesses = allTrials.reduce((acc, t) => acc + t.successes, 0);
+    return totalSuccesses / totalTrials;
+  };
+  
+  const recentRate = getAvgSuccessRate(recentSessions);
+  const olderRate = getAvgSuccessRate(olderSessions);
+  
+  if (recentRate > olderRate + 0.1) return 'up';
+  if (recentRate < olderRate - 0.1) return 'down';
+  return 'stable';
+};
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(getInitialState);
@@ -82,18 +113,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const updateChildTrend = useCallback((childId: string) => {
+    setState((prev) => {
+      const childSessions = prev.sessions.filter(s => s.childId === childId);
+      const trend = calculateTrend(childSessions);
+      return {
+        ...prev,
+        children: prev.children.map(c => 
+          c.id === childId ? { ...c, trend } : c
+        ),
+      };
+    });
+  }, []);
+
   const addSession = useCallback((session: Session) => {
     setState((prev) => {
-      // Update child's lastSessionDate and potentially trend
+      const updatedSessions = [...prev.sessions, session];
+      const childSessions = updatedSessions.filter(s => s.childId === session.childId);
+      const trend = calculateTrend(childSessions);
+      
+      // Update child's lastSessionDate and trend
       const updatedChildren = prev.children.map((c) => {
         if (c.id === session.childId) {
-          return { ...c, lastSessionDate: session.date };
+          return { ...c, lastSessionDate: session.date, trend };
         }
         return c;
       });
+      
       return {
         ...prev,
-        sessions: [...prev.sessions, session],
+        sessions: updatedSessions,
         children: updatedChildren,
       };
     });
@@ -105,6 +154,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resetData = useCallback(() => {
     setState(getInitialState());
+  }, []);
+
+  const bulkImport = useCallback((data: { children: Child[]; goals: Goal[]; sessions: Session[] }) => {
+    setState((prev) => ({
+      ...prev,
+      children: [...prev.children, ...data.children],
+      goals: [...prev.goals, ...data.goals],
+      sessions: [...prev.sessions, ...data.sessions],
+    }));
   }, []);
 
   const getChildById = useCallback(
@@ -149,6 +207,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         getSessionsByChildId,
         getReportsByChildId,
         getTherapistById,
+        bulkImport,
+        updateChildTrend,
       }}
     >
       {children}
