@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, CheckCircle } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
+import { DataSyncHint } from '@/components/DataSyncHint';
+import { useToast } from '@/hooks/use-toast';
 import type { Goal, Session, SessionTrial } from '@/data/mockData';
 import { promptLevelLabels } from '@/data/mockData';
 
@@ -25,6 +27,7 @@ interface SessionsTabProps {
 
 export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
   const { addSession, therapists, role } = useApp();
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newSession, setNewSession] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -77,6 +80,17 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
       notes: '',
     });
     setTrialData({});
+
+    // Show success toast with data sync message
+    toast({
+      title: "세션 기록 완료",
+      description: "추이 분석 및 리포트에 즉시 반영됩니다",
+      action: (
+        <div className="flex items-center gap-2 text-success">
+          <CheckCircle className="h-4 w-4" />
+        </div>
+      ),
+    });
   };
 
   const updateTrialData = (goalId: string, field: keyof SessionTrial, value: number) => {
@@ -115,6 +129,9 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
                 <DialogTitle>새 세션 기록</DialogTitle>
               </DialogHeader>
               <div className="grid gap-6 py-4">
+                {/* Data sync hint */}
+                <DataSyncHint />
+
                 {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -155,70 +172,88 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
                   <Label className="text-base font-semibold">목표별 기록</Label>
                   {goals
                     .filter((g) => g.status === 'active')
-                    .map((goal) => (
-                      <Card key={goal.id} className="p-4">
-                        <div className="mb-4">
-                          <h4 className="font-medium">{goal.title}</h4>
-                          <p className="text-sm text-muted-foreground">{goal.category}</p>
-                        </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label className="text-sm">시행 횟수: {trialData[goal.id]?.trials || 0}</Label>
-                            <Slider
-                              value={[trialData[goal.id]?.trials || 10]}
-                              min={1}
-                              max={20}
-                              step={1}
-                              onValueChange={([v]) => updateTrialData(goal.id, 'trials', v)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm">성공 횟수: {trialData[goal.id]?.successes || 0}</Label>
-                            <Slider
-                              value={[trialData[goal.id]?.successes || 5]}
-                              min={0}
-                              max={trialData[goal.id]?.trials || 10}
-                              step={1}
-                              onValueChange={([v]) => updateTrialData(goal.id, 'successes', v)}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm">
-                              촉진 수준: {promptLevelLabels[trialData[goal.id]?.promptLevel || 0]}
-                            </Label>
-                            <Slider
-                              value={[trialData[goal.id]?.promptLevel || 0]}
-                              min={0}
-                              max={3}
-                              step={1}
-                              onValueChange={([v]) => updateTrialData(goal.id, 'promptLevel', v)}
-                            />
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              {promptLevelLabels.map((label, i) => (
-                                <span key={i}>{label}</span>
-                              ))}
+                    .map((goal) => {
+                      const successRate = trialData[goal.id] 
+                        ? Math.round((trialData[goal.id].successes / trialData[goal.id].trials) * 100)
+                        : 0;
+                      
+                      return (
+                        <Card key={goal.id} className="p-4">
+                          <div className="mb-4 flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">{goal.title}</h4>
+                              <p className="text-sm text-muted-foreground">{goal.category}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-lg font-bold ${
+                                successRate >= 70 ? 'text-success' : 
+                                successRate >= 50 ? 'text-warning' : 'text-destructive'
+                              }`}>
+                                {successRate}%
+                              </p>
+                              <p className="text-xs text-muted-foreground">성공률</p>
                             </div>
                           </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm">
-                              문제행동: {trialData[goal.id]?.problemBehaviorCount || 0}회
-                            </Label>
-                            <Slider
-                              value={[trialData[goal.id]?.problemBehaviorCount || 0]}
-                              min={0}
-                              max={10}
-                              step={1}
-                              onValueChange={([v]) =>
-                                updateTrialData(goal.id, 'problemBehaviorCount', v)
-                              }
-                            />
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="space-y-2">
+                              <Label className="text-sm">시행 횟수: {trialData[goal.id]?.trials || 0}</Label>
+                              <Slider
+                                value={[trialData[goal.id]?.trials || 10]}
+                                min={1}
+                                max={20}
+                                step={1}
+                                onValueChange={([v]) => updateTrialData(goal.id, 'trials', v)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">성공 횟수: {trialData[goal.id]?.successes || 0}</Label>
+                              <Slider
+                                value={[trialData[goal.id]?.successes || 5]}
+                                min={0}
+                                max={trialData[goal.id]?.trials || 10}
+                                step={1}
+                                onValueChange={([v]) => updateTrialData(goal.id, 'successes', v)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">
+                                촉진 수준: {promptLevelLabels[trialData[goal.id]?.promptLevel || 0]}
+                              </Label>
+                              <Slider
+                                value={[trialData[goal.id]?.promptLevel || 0]}
+                                min={0}
+                                max={3}
+                                step={1}
+                                onValueChange={([v]) => updateTrialData(goal.id, 'promptLevel', v)}
+                              />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                {promptLevelLabels.map((label, i) => (
+                                  <span key={i}>{label}</span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">
+                                문제행동: {trialData[goal.id]?.problemBehaviorCount || 0}회
+                              </Label>
+                              <Slider
+                                value={[trialData[goal.id]?.problemBehaviorCount || 0]}
+                                min={0}
+                                max={10}
+                                step={1}
+                                onValueChange={([v]) =>
+                                  updateTrialData(goal.id, 'problemBehaviorCount', v)
+                                }
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
                 </div>
 
-                <Button onClick={handleCreateSession} className="mt-2">
+                <Button onClick={handleCreateSession} className="mt-2 gap-2">
+                  <CheckCircle className="h-4 w-4" />
                   세션 저장
                 </Button>
               </div>
@@ -227,10 +262,23 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
         )}
       </div>
 
+      {/* Data sync hint for session list */}
+      {canCreate && sessions.length > 0 && (
+        <DataSyncHint 
+          variant="success" 
+          message="세션을 기록하면 분석 탭과 리포트에 실시간 반영됩니다"
+        />
+      )}
+
       {sessions.length === 0 ? (
         <Card>
-          <CardContent className="flex h-32 items-center justify-center">
+          <CardContent className="flex h-32 flex-col items-center justify-center gap-2">
             <p className="text-muted-foreground">기록된 세션이 없습니다</p>
+            {canCreate && (
+              <p className="text-xs text-muted-foreground">
+                세션을 기록하면 분석 차트와 리포트가 자동으로 생성됩니다
+              </p>
+            )}
           </CardContent>
         </Card>
       ) : (

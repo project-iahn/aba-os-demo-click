@@ -13,7 +13,10 @@ import {
 } from 'recharts';
 import type { Goal, Session } from '@/data/mockData';
 import { promptLevelLabels } from '@/data/mockData';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Lightbulb } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle, Lightbulb, BarChart3 } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { ParentExplainer } from '@/components/ParentExplainer';
+import { DataSyncHint } from '@/components/DataSyncHint';
 
 interface AnalyticsTabProps {
   sessions: Session[];
@@ -23,6 +26,8 @@ interface AnalyticsTabProps {
 const COLORS = ['#0ea5e9', '#14b8a6', '#f59e0b', '#8b5cf6', '#ec4899'];
 
 export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
+  const { role } = useApp();
+
   // Prepare success rate data by session date for each goal
   const successRateData = useMemo(() => {
     const sortedSessions = [...sessions].sort(
@@ -83,7 +88,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
     const recentSessions = sortedSessions.slice(0, 4);
     const olderSessions = sortedSessions.slice(4, 8);
 
-    const insights: { type: 'success' | 'warning' | 'info'; message: string }[] = [];
+    const insights: { type: 'success' | 'warning' | 'info'; message: string; detail?: string }[] = [];
 
     goals.forEach((goal) => {
       const recentTrials = recentSessions.flatMap((s) => s.trials.filter((t) => t.goalId === goal.id));
@@ -105,12 +110,14 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
           if (rateChange > 10) {
             insights.push({
               type: 'success',
-              message: `${goal.title}: 성공률 ${Math.round(olderRate)}% → ${Math.round(recentRate)}% (+${Math.round(rateChange)}%p) 향상`,
+              message: `${goal.title}: 성공률 ${Math.round(olderRate)}% → ${Math.round(recentRate)}%`,
+              detail: `+${Math.round(rateChange)}%p 향상`,
             });
           } else if (rateChange < -10) {
             insights.push({
               type: 'warning',
-              message: `${goal.title}: 성공률 ${Math.round(olderRate)}% → ${Math.round(recentRate)}% (${Math.round(rateChange)}%p) 하락. 전략 조정 필요`,
+              message: `${goal.title}: 성공률 ${Math.round(olderRate)}% → ${Math.round(recentRate)}%`,
+              detail: `${Math.round(rateChange)}%p 하락 · 전략 조정 필요`,
             });
           }
 
@@ -121,7 +128,8 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
           if (recentAvgPrompt < olderAvgPrompt - 0.5) {
             insights.push({
               type: 'info',
-              message: `${goal.title}: 촉진 수준 ${promptLevelLabels[Math.round(olderAvgPrompt)]} → ${promptLevelLabels[Math.round(recentAvgPrompt)]}으로 개선. 독립성 향상 중`,
+              message: `${goal.title}: 촉진 수준 감소`,
+              detail: `${promptLevelLabels[Math.round(olderAvgPrompt)]} → ${promptLevelLabels[Math.round(recentAvgPrompt)]} · 독립성 향상 중`,
             });
           }
         }
@@ -130,7 +138,8 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         if (recentRate >= 80 && recentTrials.every(t => t.promptLevel <= 1)) {
           insights.push({
             type: 'success',
-            message: `${goal.title}: 성공률 ${Math.round(recentRate)}%, 촉진 수준 낮음. 마스터리 기준 근접`,
+            message: `${goal.title}: 마스터리 기준 근접`,
+            detail: `성공률 ${Math.round(recentRate)}% · 촉진 수준 낮음`,
           });
         }
 
@@ -139,7 +148,8 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         if (recentProblems > 4) {
           insights.push({
             type: 'warning',
-            message: `${goal.title}: 최근 세션에서 문제행동 ${recentProblems}회 발생. 행동 관리 전략 검토 필요`,
+            message: `${goal.title}: 문제행동 발생`,
+            detail: `최근 ${recentProblems}회 · 행동 관리 전략 검토 필요`,
           });
         }
       }
@@ -200,9 +210,9 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
     return (
       <Card className="border-dashed">
         <CardContent className="flex h-64 flex-col items-center justify-center">
-          <AlertTriangle className="h-12 w-12 text-muted-foreground/50 mb-4" />
+          <BarChart3 className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <p className="text-muted-foreground font-medium">분석할 세션 데이터가 없습니다</p>
-          <p className="text-sm text-muted-foreground">세션을 기록하면 추이 분석이 자동으로 생성됩니다</p>
+          <p className="text-sm text-muted-foreground mt-1">세션을 기록하면 추이 분석이 자동으로 생성됩니다</p>
         </CardContent>
       </Card>
     );
@@ -221,6 +231,57 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
 
   return (
     <div className="space-y-6">
+      {/* Parent explainer */}
+      {role === 'parent' && (
+        <ParentExplainer
+          title="분석 차트란?"
+          description="이 화면은 자녀의 치료 목표별 성공률과 독립성(촉진 수준) 변화를 시각적으로 보여줍니다. 그래프가 위로 올라가면 성공률이 향상되는 것이고, 촉진 수준은 낮을수록(독립 방향) 좋습니다."
+        />
+      )}
+
+      {/* Data Sync Hint */}
+      <DataSyncHint />
+
+      {/* Insights Card - Prominent position */}
+      {insights.length > 0 && (
+        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-accent/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-primary" />
+              해석 카드 · 데이터 기반 인사이트
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {insights.map((insight, i) => (
+                <div 
+                  key={i} 
+                  className={`flex items-start gap-3 rounded-lg p-3 ${
+                    insight.type === 'success' ? 'bg-success/10' :
+                    insight.type === 'warning' ? 'bg-warning/10' : 'bg-primary/10'
+                  }`}
+                >
+                  {insight.type === 'success' && <TrendingUp className="h-5 w-5 mt-0.5 text-success shrink-0" />}
+                  {insight.type === 'warning' && <AlertTriangle className="h-5 w-5 mt-0.5 text-warning shrink-0" />}
+                  {insight.type === 'info' && <Lightbulb className="h-5 w-5 mt-0.5 text-primary shrink-0" />}
+                  <div>
+                    <p className="font-medium text-sm">{insight.message}</p>
+                    {insight.detail && (
+                      <p className={`text-xs mt-0.5 ${
+                        insight.type === 'success' ? 'text-success' :
+                        insight.type === 'warning' ? 'text-warning' : 'text-primary'
+                      }`}>
+                        {insight.detail}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Goal Summary Cards */}
       {goalSummary.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -255,34 +316,15 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         </div>
       )}
 
-      {/* Insights */}
-      {insights.length > 0 && (
-        <Card className="insight-box border-0">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-primary" />
-              데이터 기반 인사이트
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {insights.map((insight, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  {insight.type === 'success' && <TrendingUp className="h-4 w-4 mt-0.5 text-success shrink-0" />}
-                  {insight.type === 'warning' && <AlertTriangle className="h-4 w-4 mt-0.5 text-warning shrink-0" />}
-                  {insight.type === 'info' && <Lightbulb className="h-4 w-4 mt-0.5 text-primary shrink-0" />}
-                  {insight.message}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Success Rate Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">목표별 성공률 추이</CardTitle>
+          {role === 'parent' && (
+            <p className="text-sm text-muted-foreground">
+              그래프가 위로 올라갈수록 목표 달성이 잘 되고 있다는 의미입니다
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <div className="h-72">
@@ -331,7 +373,10 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         <CardHeader>
           <CardTitle className="text-base">목표별 촉진 수준 추이</CardTitle>
           <p className="text-sm text-muted-foreground">
-            낮을수록 독립적 수행 (0: {promptLevelLabels[0]}, 3: {promptLevelLabels[3]})
+            {role === 'parent' 
+              ? '촉진 수준이 낮아질수록 아이가 더 독립적으로 과제를 수행할 수 있다는 의미입니다'
+              : `낮을수록 독립적 수행 (0: ${promptLevelLabels[0]}, 3: ${promptLevelLabels[3]})`
+            }
           </p>
         </CardHeader>
         <CardContent>
