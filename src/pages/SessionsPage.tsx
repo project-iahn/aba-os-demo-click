@@ -72,14 +72,14 @@ export default function SessionsPage() {
             </div>
 
             <Select
-              value={filters.therapistId}
-              onValueChange={(value) => setFilters({ ...filters, therapistId: value })}
+              value={filters.therapistId || "all"}
+              onValueChange={(value) => setFilters({ ...filters, therapistId: value === "all" ? "" : value })}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="치료사 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">전체</SelectItem>
+                <SelectItem value="all">전체</SelectItem>
                 {therapists.map((t) => (
                   <SelectItem key={t.id} value={t.id}>
                     {t.name}
@@ -89,14 +89,14 @@ export default function SessionsPage() {
             </Select>
 
             <Select
-              value={filters.childId}
-              onValueChange={(value) => setFilters({ ...filters, childId: value })}
+              value={filters.childId || "all"}
+              onValueChange={(value) => setFilters({ ...filters, childId: value === "all" ? "" : value })}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="아동 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">전체</SelectItem>
+                <SelectItem value="all">전체</SelectItem>
                 {children.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
