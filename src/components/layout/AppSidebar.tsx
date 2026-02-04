@@ -26,8 +26,8 @@ export function AppSidebar() {
           <Activity className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-sidebar-foreground">ABA OS</h1>
-          <p className="text-xs text-sidebar-muted">치료 관리 시스템</p>
+          <h1 className="text-lg font-bold text-sidebar-foreground">Dear One</h1>
+          <p className="text-xs text-sidebar-muted">발달치료 관리</p>
         </div>
       </div>
 
