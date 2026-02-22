@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Users, Calendar, TrendingDown, TrendingUp, FileText, AlertTriangle, Clock, ArrowRight, ChevronDown, ChevronRight, DollarSign, CreditCard, Receipt, PieChart } from 'lucide-react';
+import { Users, Calendar, TrendingDown, TrendingUp, FileText, AlertTriangle, Clock, ArrowRight, ChevronDown, ChevronRight, DollarSign, CreditCard, Receipt, PieChart, CalendarIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,10 +9,26 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format, subDays, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 export default function Dashboard() {
   const { children, sessions, reports, goals, therapists } = useApp();
   const navigate = useNavigate();
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
+  });
+
+  const isInRange = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return isWithinInterval(d, { start: dateRange.from, end: dateRange.to });
+  };
+
+  const filteredSessions = useMemo(() => sessions.filter(s => isInRange(s.date)), [sessions, dateRange]);
   const [expandedTherapists, setExpandedTherapists] = useState<Record<string, boolean>>({});
 
   const kpis = useMemo(() => {
@@ -80,27 +96,23 @@ export default function Dashboard() {
     const masteredGoals = goals.filter(g => g.status === 'mastered').length;
     const activeGoals = goals.filter(g => g.status === 'active').length;
 
-    // Therapist workload
+    // Therapist workload (filtered by date range)
     const therapistWorkload = therapists.map(t => {
       const caseCount = children.filter(c => c.therapistId === t.id && c.status === 'active').length;
-      const sessionCount = sessions.filter(s => s.therapistId === t.id).length;
+      const sessionCount = filteredSessions.filter(s => s.therapistId === t.id).length;
       return { ...t, activeCases: caseCount, totalSessions: sessionCount };
     });
 
     return { active, pending, inactive, totalGoals, masteredGoals, activeGoals, therapistWorkload };
-  }, [children, goals, sessions, therapists]);
+  }, [children, goals, filteredSessions, therapists]);
 
-  // Mock accounting data
+  // Accounting data (filtered by date range)
   const accounting = useMemo(() => {
     const activeCases = children.filter(c => c.status === 'active').length;
-    const totalSessionsMonth = sessions.filter(s => {
-      const d = new Date(s.date);
-      const now = new Date();
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).length;
+    const totalSessionsMonth = filteredSessions.length;
 
     // Mock financial data
-    const sessionFee = 50000; // 5만원 per session
+    const sessionFee = 50000;
     const monthlyRevenue = totalSessionsMonth * sessionFee;
     const voucherCount = Math.floor(activeCases * 0.6);
     const insuranceCount = Math.floor(activeCases * 0.3);
@@ -115,7 +127,7 @@ export default function Dashboard() {
       pendingClaims: voucherCount + insuranceCount,
       collectedRate: 78,
     };
-  }, [children, sessions]);
+  }, [children, filteredSessions]);
 
   const toggleTherapist = (id: string) => {
     setExpandedTherapists(prev => ({ ...prev, [id]: !prev[id] }));
@@ -226,6 +238,51 @@ export default function Dashboard() {
       </div>
 
       {/* Case Management & Accounting Tabs */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-lg font-semibold text-foreground">관리 현황</h2>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className={cn("gap-2 text-sm", !dateRange.from && "text-muted-foreground")}>
+                <CalendarIcon className="h-4 w-4" />
+                {format(dateRange.from, 'yyyy.MM.dd', { locale: ko })}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateRange.from}
+                onSelect={(d) => d && setDateRange(prev => ({ ...prev, from: d }))}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <span className="text-muted-foreground text-sm">~</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className={cn("gap-2 text-sm", !dateRange.to && "text-muted-foreground")}>
+                <CalendarIcon className="h-4 w-4" />
+                {format(dateRange.to, 'yyyy.MM.dd', { locale: ko })}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={dateRange.to}
+                onSelect={(d) => d && setDateRange(prev => ({ ...prev, to: d }))}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <div className="flex gap-1 ml-2">
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => setDateRange({ from: subDays(new Date(), 7), to: new Date() })}>7일</Button>
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => setDateRange({ from: subDays(new Date(), 30), to: new Date() })}>30일</Button>
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => setDateRange({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) })}>이번 달</Button>
+          </div>
+        </div>
+      </div>
       <Tabs defaultValue="cases" className="space-y-4">
         <TabsList>
           <TabsTrigger value="cases" className="gap-2">
@@ -348,7 +405,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="text-lg font-bold">{(accounting.monthlyRevenue / 10000).toLocaleString()}만원</p>
-                    <p className="text-xs text-muted-foreground">이번 달 예상 매출</p>
+                    <p className="text-xs text-muted-foreground">기간 내 예상 매출</p>
                   </div>
                 </div>
               </CardContent>
@@ -425,7 +482,7 @@ export default function Dashboard() {
           {/* Monthly Session Billing */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">이번 달 세션 청구 내역</CardTitle>
+              <CardTitle className="text-base">기간 내 세션 청구 내역</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
