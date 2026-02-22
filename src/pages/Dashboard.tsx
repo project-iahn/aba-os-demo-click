@@ -1,50 +1,34 @@
 import { useMemo } from 'react';
-import { Users, Calendar, TrendingUp, TrendingDown, FileText, AlertTriangle, Clock, ArrowRight, Upload } from 'lucide-react';
+import { Users, Calendar, TrendingUp, TrendingDown, FileText, AlertTriangle, Clock, ArrowRight } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useNavigate, Navigate } from 'react-router-dom';
-import { StepGuide } from '@/components/StepGuide';
-import { DataSyncHint } from '@/components/DataSyncHint';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { children, sessions, reports, goals, role } = useApp();
+  const { children, sessions, reports, goals } = useApp();
   const navigate = useNavigate();
 
-  // Calculate KPIs with detailed evidence
   const kpis = useMemo(() => {
     const activeCases = children.filter((c) => c.status === 'active').length;
-    
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const sessionsLast7Days = sessions.filter(
       (s) => new Date(s.date) >= sevenDaysAgo
     ).length;
 
-    // Calculate average success rate
-    const allTrials = sessions.flatMap((s) => s.trials);
-    const totalTrials = allTrials.reduce((acc, t) => acc + t.trials, 0);
-    const totalSuccesses = allTrials.reduce((acc, t) => acc + t.successes, 0);
-    const avgSuccessRate = totalTrials > 0 ? Math.round((totalSuccesses / totalTrials) * 100) : 0;
-
-    // Children needing reports (no report this month)
+    // Active reports (written count)
     const currentMonth = new Date().toISOString().slice(0, 7);
-    const reportsNeededCount = children.filter((c) => {
-      const hasReportThisMonth = reports.some(
-        (r) => r.childId === c.id && r.period === currentMonth
-      );
-      return c.status === 'active' && !hasReportThisMonth;
-    }).length;
+    const activeReports = reports.filter((r) => r.period === currentMonth).length;
 
-    return { activeCases, sessionsLast7Days, avgSuccessRate, reportsNeededCount };
+    return { activeCases, sessionsLast7Days, activeReports };
   }, [children, sessions, reports]);
 
-  // Calculate operational alerts with numeric evidence
   const alerts = useMemo(() => {
     const currentMonth = new Date().toISOString().slice(0, 7);
-    
-    // Children needing monthly reports
+
     const childrenNeedingReports = children.filter((c) => {
       const hasReportThisMonth = reports.some(
         (r) => r.childId === c.id && r.period === currentMonth
@@ -52,25 +36,19 @@ export default function Dashboard() {
       return c.status === 'active' && !hasReportThisMonth;
     });
 
-    // Children with declining success rate in last 4 sessions (with evidence)
     const childrenWithDecline = children.map((c) => {
       const childSessions = sessions
         .filter(s => s.childId === c.id)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 4);
-      
       if (childSessions.length < 4) return null;
-      
       const recentTrials = childSessions.slice(0, 2).flatMap(s => s.trials);
       const olderTrials = childSessions.slice(2, 4).flatMap(s => s.trials);
-      
       if (recentTrials.length === 0 || olderTrials.length === 0) return null;
-      
-      const recentRate = Math.round((recentTrials.reduce((acc, t) => acc + t.successes, 0) / 
-                         recentTrials.reduce((acc, t) => acc + t.trials, 0)) * 100);
-      const olderRate = Math.round((olderTrials.reduce((acc, t) => acc + t.successes, 0) / 
-                        olderTrials.reduce((acc, t) => acc + t.trials, 0)) * 100);
-      
+      const recentRate = Math.round((recentTrials.reduce((a, t) => a + t.successes, 0) /
+        recentTrials.reduce((a, t) => a + t.trials, 0)) * 100);
+      const olderRate = Math.round((olderTrials.reduce((a, t) => a + t.successes, 0) /
+        olderTrials.reduce((a, t) => a + t.trials, 0)) * 100);
       if (recentRate < olderRate - 10) {
         return { child: c, recentRate, olderRate, change: recentRate - olderRate };
       }
@@ -98,72 +76,25 @@ export default function Dashboard() {
       bgColor: 'bg-accent/10',
     },
     {
-      label: '평균 성공률',
-      value: `${kpis.avgSuccessRate}%`,
-      subtext: '전체 목표 평균',
-      icon: TrendingUp,
+      label: '활성 리포트',
+      value: kpis.activeReports,
+      subtext: '이번 달 작성 완료',
+      icon: FileText,
       color: 'text-success',
       bgColor: 'bg-success/10',
-    },
-    {
-      label: '리포트 미작성',
-      value: kpis.reportsNeededCount,
-      subtext: '이번 달 작성 필요',
-      icon: FileText,
-      color: kpis.reportsNeededCount > 0 ? 'text-warning' : 'text-success',
-      bgColor: kpis.reportsNeededCount > 0 ? 'bg-warning/10' : 'bg-success/10',
     },
   ];
 
   return (
     <div className="animate-fade-in space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">운영 대시보드</h1>
-          <p className="text-muted-foreground">센터 운영 현황을 한눈에 파악하고 관리하세요</p>
-        </div>
-        
-        {role === 'admin' && (
-          <Button 
-            variant="outline" 
-            className="gap-2 self-start"
-            onClick={() => navigate('/migration')}
-          >
-            <Upload className="h-4 w-4" />
-            기존 데이터 가져오기
-          </Button>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">운영 대시보드</h1>
+        <p className="text-muted-foreground">센터 운영 현황을 한눈에 파악하고 관리하세요</p>
       </div>
 
-      {/* Step Guide - Show for admin and therapist */}
-      <StepGuide />
-
-      {/* Migration Banner for Admins */}
-      {role === 'admin' && (
-        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-accent/5">
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <Upload className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="font-semibold">엑셀·수기 기록 그대로 이전하고 바로 분석하세요</p>
-                <p className="text-sm text-muted-foreground">
-                  기존 데이터를 업로드하면 차트와 리포트가 자동으로 생성됩니다
-                </p>
-              </div>
-            </div>
-            <Button onClick={() => navigate('/migration')} className="gap-2">
-              데이터 마이그레이션
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
       {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         {kpiCards.map((kpi) => (
           <Card key={kpi.label} className="stat-card">
             <CardContent className="p-0">
@@ -189,7 +120,7 @@ export default function Dashboard() {
           운영 알림
         </h2>
         <div className="grid gap-4 lg:grid-cols-2">
-          {/* Reports Needed Alert */}
+          {/* Reports Needed */}
           <Card className="alert-card alert-warning">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -217,9 +148,7 @@ export default function Dashboard() {
                       </Badge>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    케이스를 클릭하여 리포트를 생성하세요
-                  </p>
+                  <p className="text-xs text-muted-foreground">케이스를 클릭하여 리포트를 생성하세요</p>
                 </div>
               ) : (
                 <p className="text-sm text-success font-medium">✓ 모든 아동의 리포트가 완료되었습니다</p>
@@ -227,7 +156,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Declining Success Rate Alert */}
+          {/* Declining Success Rate */}
           <Card className="alert-card alert-info">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -259,9 +188,7 @@ export default function Dashboard() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    최근 4회 세션 기준 · 케이스를 클릭하여 상세 분석을 확인하세요
-                  </p>
+                  <p className="text-xs text-muted-foreground">최근 4회 세션 기준 · 케이스를 클릭하여 상세 분석을 확인하세요</p>
                 </div>
               ) : (
                 <p className="text-sm text-success font-medium">✓ 모든 아동이 안정적인 진전을 보이고 있습니다</p>
@@ -271,20 +198,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Data Sync Hint */}
-      <DataSyncHint />
-
       {/* Recent Sessions */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-              최근 치료 세션
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/sessions')}>
-              전체 보기
-            </Button>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            최근 치료 세션
           </CardTitle>
         </CardHeader>
         <CardContent>
