@@ -5,7 +5,7 @@ import { useApp } from '@/context/AppContext';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: '대시보드', roles: ['admin'] },
-  { to: '/cases', icon: Users, label: '케이스 (아동)', roles: ['admin', 'therapist'] },
+  { to: '/cases', icon: Users, label: '케이스 관리', roles: ['admin', 'therapist'] },
   { to: '/session-summary', icon: BarChart3, label: '세션 요약', roles: ['parent'] },
   { to: '/reports', icon: FileText, label: '진행 리포트', roles: ['admin', 'therapist', 'parent'] },
   { to: '/migration', icon: Upload, label: '데이터 마이그레이션', roles: ['admin', 'therapist'] },

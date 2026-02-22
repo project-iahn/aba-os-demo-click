@@ -91,6 +91,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [sectionOrder, setSectionOrder] = useState(['successRate', 'promptLevel', 'sessionStatus', 'insights']);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -207,6 +208,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
   }, [filteredSessions, goals]);
 
   const activeGoals = goals.filter(g => g.status === 'active');
+  const displayGoals = selectedGoalId ? activeGoals.filter(g => g.id === selectedGoalId) : activeGoals;
 
   if (sessions.length === 0) {
     return (
@@ -257,8 +259,8 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
       return (
         <BarChart data={data}>
           {chartProps.children}
-          {activeGoals.map((goal, i) => (
-            <Bar key={goal.id} dataKey={goal.title} fill={COLORS[i % COLORS.length]} />
+          {displayGoals.map((goal, i) => (
+            <Bar key={goal.id} dataKey={goal.title} fill={COLORS[activeGoals.findIndex(g => g.id === goal.id) % COLORS.length]} />
           ))}
         </BarChart>
       );
@@ -267,8 +269,8 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
       return (
         <AreaChart data={data}>
           {chartProps.children}
-          {activeGoals.map((goal, i) => (
-            <Area key={goal.id} type="monotone" dataKey={goal.title} stroke={COLORS[i % COLORS.length]} fill={COLORS[i % COLORS.length]} fillOpacity={0.2} />
+          {displayGoals.map((goal, i) => (
+            <Area key={goal.id} type="monotone" dataKey={goal.title} stroke={COLORS[activeGoals.findIndex(g => g.id === goal.id) % COLORS.length]} fill={COLORS[activeGoals.findIndex(g => g.id === goal.id) % COLORS.length]} fillOpacity={0.2} />
           ))}
         </AreaChart>
       );
@@ -276,8 +278,8 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
     return (
       <LineChart data={data}>
         {chartProps.children}
-        {activeGoals.map((goal, i) => (
-          <Line key={goal.id} type="monotone" dataKey={goal.title} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+        {displayGoals.map((goal, i) => (
+          <Line key={goal.id} type="monotone" dataKey={goal.title} stroke={COLORS[activeGoals.findIndex(g => g.id === goal.id) % COLORS.length]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
         ))}
       </LineChart>
     );
@@ -289,6 +291,26 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         <CardHeader>
           <CardTitle className="text-base">목표별 성공률 추이</CardTitle>
           {role === 'parent' && <p className="text-sm text-muted-foreground">그래프가 위로 올라갈수록 목표 달성이 잘 되고 있다는 의미입니다</p>}
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Badge
+              variant={selectedGoalId === null ? 'default' : 'outline'}
+              className="cursor-pointer transition-colors"
+              onClick={() => setSelectedGoalId(null)}
+            >
+              전체
+            </Badge>
+            {activeGoals.map((goal, i) => (
+              <Badge
+                key={goal.id}
+                variant={selectedGoalId === goal.id ? 'default' : 'outline'}
+                className="cursor-pointer transition-colors"
+                style={selectedGoalId === goal.id ? { backgroundColor: COLORS[i % COLORS.length], borderColor: COLORS[i % COLORS.length] } : { borderColor: COLORS[i % COLORS.length], color: COLORS[i % COLORS.length] }}
+                onClick={() => setSelectedGoalId(selectedGoalId === goal.id ? null : goal.id)}
+              >
+                {goal.title}
+              </Badge>
+            ))}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-72">
@@ -306,6 +328,26 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
           <p className="text-sm text-muted-foreground">
             {role === 'parent' ? '촉진 수준이 낮아질수록 아이가 더 독립적으로 과제를 수행할 수 있다는 의미입니다' : `낮을수록 독립적 수행 (0: ${promptLevelLabels[0]}, 3: ${promptLevelLabels[3]})`}
           </p>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Badge
+              variant={selectedGoalId === null ? 'default' : 'outline'}
+              className="cursor-pointer transition-colors"
+              onClick={() => setSelectedGoalId(null)}
+            >
+              전체
+            </Badge>
+            {activeGoals.map((goal, i) => (
+              <Badge
+                key={goal.id}
+                variant={selectedGoalId === goal.id ? 'default' : 'outline'}
+                className="cursor-pointer transition-colors"
+                style={selectedGoalId === goal.id ? { backgroundColor: COLORS[i % COLORS.length], borderColor: COLORS[i % COLORS.length] } : { borderColor: COLORS[i % COLORS.length], color: COLORS[i % COLORS.length] }}
+                onClick={() => setSelectedGoalId(selectedGoalId === goal.id ? null : goal.id)}
+              >
+                {goal.title}
+              </Badge>
+            ))}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-72">
