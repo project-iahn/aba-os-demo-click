@@ -85,7 +85,7 @@ export default function CaseDetail() {
         {/* Overview Tab - merged with Goals */}
         <TabsContent value="overview" className="space-y-6">
           {/* Quick Stats */}
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="stat-card">
               <CardContent className="p-0">
                 <div className="flex items-center gap-3">
@@ -121,6 +121,23 @@ export default function CaseDetail() {
                   <div>
                     <p className="text-2xl font-bold">{stats.avgSuccessRate}%</p>
                     <p className="text-sm text-muted-foreground">평균 성공률</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="stat-card">
+              <CardContent className="p-0">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-primary/10 p-3">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">
+                      {child.estimatedDevAge
+                        ? `${Math.floor(child.estimatedDevAge / 12)}세 ${child.estimatedDevAge % 12}개월`
+                        : '-'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">발달 추정 연령</p>
                   </div>
                 </div>
               </CardContent>

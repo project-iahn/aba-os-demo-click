@@ -1,34 +1,30 @@
-import { useMemo } from 'react';
-import { Users, Calendar, TrendingUp, TrendingDown, FileText, AlertTriangle, Clock, ArrowRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Users, Calendar, TrendingDown, FileText, AlertTriangle, Clock, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export default function Dashboard() {
-  const { children, sessions, reports, goals } = useApp();
+  const { children, sessions, reports, goals, therapists } = useApp();
   const navigate = useNavigate();
+  const [expandedTherapists, setExpandedTherapists] = useState<Record<string, boolean>>({});
 
   const kpis = useMemo(() => {
     const activeCases = children.filter((c) => c.status === 'active').length;
-
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const sessionsLast7Days = sessions.filter(
       (s) => new Date(s.date) >= sevenDaysAgo
     ).length;
-
-    // Active reports (written count)
     const currentMonth = new Date().toISOString().slice(0, 7);
     const activeReports = reports.filter((r) => r.period === currentMonth).length;
-
     return { activeCases, sessionsLast7Days, activeReports };
   }, [children, sessions, reports]);
 
   const alerts = useMemo(() => {
     const currentMonth = new Date().toISOString().slice(0, 7);
-
     const childrenNeedingReports = children.filter((c) => {
       const hasReportThisMonth = reports.some(
         (r) => r.childId === c.id && r.period === currentMonth
@@ -58,36 +54,33 @@ export default function Dashboard() {
     return { childrenNeedingReports, childrenWithDecline };
   }, [children, sessions, reports]);
 
+  // Group recent sessions by therapist
+  const recentSessionsByTherapist = useMemo(() => {
+    const sorted = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const grouped: Record<string, typeof sessions> = {};
+    for (const s of sorted) {
+      if (!grouped[s.therapistId]) grouped[s.therapistId] = [];
+      grouped[s.therapistId].push(s);
+    }
+    // Only keep recent 5 per therapist
+    for (const key of Object.keys(grouped)) {
+      grouped[key] = grouped[key].slice(0, 5);
+    }
+    return grouped;
+  }, [sessions]);
+
+  const toggleTherapist = (id: string) => {
+    setExpandedTherapists(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const kpiCards = [
-    {
-      label: '활성 케이스',
-      value: kpis.activeCases,
-      subtext: '현재 진행 중인 아동',
-      icon: Users,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-    },
-    {
-      label: '최근 7일 세션',
-      value: kpis.sessionsLast7Days,
-      subtext: '지난 일주일 치료 활동',
-      icon: Calendar,
-      color: 'text-accent',
-      bgColor: 'bg-accent/10',
-    },
-    {
-      label: '활성 리포트',
-      value: kpis.activeReports,
-      subtext: '이번 달 작성 완료',
-      icon: FileText,
-      color: 'text-success',
-      bgColor: 'bg-success/10',
-    },
+    { label: '활성 케이스', value: kpis.activeCases, subtext: '현재 진행 중인 아동', icon: Users, color: 'text-primary', bgColor: 'bg-primary/10' },
+    { label: '최근 7일 세션', value: kpis.sessionsLast7Days, subtext: '지난 일주일 치료 활동', icon: Calendar, color: 'text-accent', bgColor: 'bg-accent/10' },
+    { label: '활성 리포트', value: kpis.activeReports, subtext: '이번 달 작성 완료', icon: FileText, color: 'text-success', bgColor: 'bg-success/10' },
   ];
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">운영 대시보드</h1>
         <p className="text-muted-foreground">센터 운영 현황을 한눈에 파악하고 관리하세요</p>
@@ -120,7 +113,6 @@ export default function Dashboard() {
           운영 알림
         </h2>
         <div className="grid gap-4 lg:grid-cols-2">
-          {/* Reports Needed */}
           <Card className="alert-card alert-warning">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -137,14 +129,8 @@ export default function Dashboard() {
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {alerts.childrenNeedingReports.map((child) => (
-                      <Badge
-                        key={child.id}
-                        variant="secondary"
-                        className="cursor-pointer hover:bg-secondary/80 transition-colors"
-                        onClick={() => navigate(`/cases/${child.id}`)}
-                      >
-                        {child.name}
-                        <ArrowRight className="h-3 w-3 ml-1" />
+                      <Badge key={child.id} variant="secondary" className="cursor-pointer hover:bg-secondary/80 transition-colors" onClick={() => navigate(`/cases/${child.id}`)}>
+                        {child.name}<ArrowRight className="h-3 w-3 ml-1" />
                       </Badge>
                     ))}
                   </div>
@@ -156,7 +142,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Declining Success Rate */}
           <Card className="alert-card alert-info">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -173,11 +158,7 @@ export default function Dashboard() {
                   </p>
                   <div className="space-y-2">
                     {alerts.childrenWithDecline.map((item) => (
-                      <div
-                        key={item.child.id}
-                        className="flex items-center justify-between rounded-lg bg-destructive/5 px-3 py-2 cursor-pointer hover:bg-destructive/10 transition-colors"
-                        onClick={() => navigate(`/cases/${item.child.id}`)}
-                      >
+                      <div key={item.child.id} className="flex items-center justify-between rounded-lg bg-destructive/5 px-3 py-2 cursor-pointer hover:bg-destructive/10 transition-colors" onClick={() => navigate(`/cases/${item.child.id}`)}>
                         <span className="font-medium">{item.child.name}</span>
                         <span className="text-sm">
                           <span className="text-muted-foreground">{item.olderRate}%</span>
@@ -198,7 +179,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Sessions */}
+      {/* Recent Sessions - grouped by therapist */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -214,43 +195,69 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {sessions
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .slice(0, 5)
-                .map((session) => {
-                  const child = children.find((c) => c.id === session.childId);
-                  const totalTrials = session.trials.reduce((acc, t) => acc + t.trials, 0);
-                  const totalSuccesses = session.trials.reduce((acc, t) => acc + t.successes, 0);
-                  const avgSuccess = totalTrials > 0 ? totalSuccesses / totalTrials : 0;
+              {therapists.map((therapist) => {
+                const therapistSessions = recentSessionsByTherapist[therapist.id];
+                if (!therapistSessions || therapistSessions.length === 0) return null;
+                const isExpanded = expandedTherapists[therapist.id] ?? false;
+                const therapistChildren = children.filter(c => c.therapistId === therapist.id);
 
-                  return (
-                    <div
-                      key={session.id}
-                      className="flex items-center justify-between rounded-lg border border-border/50 bg-card p-3 transition-colors hover:bg-muted/30 cursor-pointer"
-                      onClick={() => navigate(`/cases/${session.childId}`)}
-                    >
+                return (
+                  <Collapsible key={therapist.id} open={isExpanded} onOpenChange={() => toggleTherapist(therapist.id)}>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border border-border/50 bg-muted/30 px-4 py-3 transition-colors hover:bg-muted/50">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                          {child?.name.charAt(0)}
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-sm font-semibold text-accent">
+                          {therapist.name.charAt(0)}
                         </div>
-                        <div>
-                          <p className="font-medium">{child?.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(session.date).toLocaleDateString('ko-KR')} · {session.duration}분 · {session.trials.length}개 목표
-                          </p>
+                        <div className="text-left">
+                          <p className="font-medium text-foreground">{therapist.name}</p>
+                          <p className="text-xs text-muted-foreground">{therapist.specialization} · 담당 {therapistChildren.length}명</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">
-                          성공률{' '}
-                          <span className={avgSuccess >= 0.7 ? 'text-success' : avgSuccess >= 0.5 ? 'text-warning' : 'text-destructive'}>
-                            {Math.round(avgSuccess * 100)}%
-                          </span>
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <Badge variant="secondary">{therapistSessions.length}세션</Badge>
+                        {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                       </div>
-                    </div>
-                  );
-                })}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="mt-1 ml-6 space-y-2 border-l-2 border-border/30 pl-4">
+                        {therapistSessions.map((session) => {
+                          const child = children.find((c) => c.id === session.childId);
+                          const totalTrials = session.trials.reduce((acc, t) => acc + t.trials, 0);
+                          const totalSuccesses = session.trials.reduce((acc, t) => acc + t.successes, 0);
+                          const avgSuccess = totalTrials > 0 ? totalSuccesses / totalTrials : 0;
+
+                          return (
+                            <div
+                              key={session.id}
+                              className="flex items-center justify-between rounded-lg border border-border/50 bg-card p-3 transition-colors hover:bg-muted/30 cursor-pointer"
+                              onClick={() => navigate(`/cases/${session.childId}`)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                  {child?.name.charAt(0)}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">{child?.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(session.date).toLocaleDateString('ko-KR')} · {session.duration}분 · {session.trials.length}개 목표
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-medium">
+                                  <span className={avgSuccess >= 0.7 ? 'text-success' : avgSuccess >= 0.5 ? 'text-warning' : 'text-destructive'}>
+                                    {Math.round(avgSuccess * 100)}%
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
             </div>
           )}
         </CardContent>
