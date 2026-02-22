@@ -7,5 +7,8 @@ export function RoleRedirect() {
   if (role === 'admin') {
     return <Navigate to="/dashboard" replace />;
   }
+  if (role === 'parent') {
+    return <Navigate to="/reports" replace />;
+  }
   return <Navigate to="/cases" replace />;
 }

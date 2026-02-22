@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Download, Search, Calendar } from 'lucide-react';
+import { FileText, Download, Calendar, FileDown } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -19,13 +18,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import type { Report } from '@/data/mockData';
 
 export default function ReportsPage() {
   const { reports, children } = useApp();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedChildId, setSelectedChildId] = useState('');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportTemplate, setExportTemplate] = useState<'default' | 'voucher' | 'insurance'>('default');
 
   const filteredReports = selectedChildId
     ? reports.filter((r) => r.childId === selectedChildId)
@@ -151,8 +154,8 @@ export default function ReportsPage() {
                       {selectedReport.createdBy}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="h-4 w-4" />
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowExportDialog(true)}>
+                    <FileDown className="h-4 w-4" />
                     내보내기
                   </Button>
                 </div>
@@ -175,6 +178,44 @@ export default function ReportsPage() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Export Template Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>내보내기 템플릿 선택</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {[
+              { value: 'default' as const, label: '기본 템플릿', desc: '표준 진행 리포트 양식' },
+              { value: 'voucher' as const, label: '바우처 템플릿', desc: '발달재활 바우처 제출용 양식' },
+              { value: 'insurance' as const, label: '실비 템플릿', desc: '실비 보험 청구용 양식' },
+            ].map(tmpl => (
+              <div
+                key={tmpl.value}
+                className={`cursor-pointer rounded-lg border p-4 transition-all ${
+                  exportTemplate === tmpl.value ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/50'
+                }`}
+                onClick={() => setExportTemplate(tmpl.value)}
+              >
+                <p className="font-medium">{tmpl.label}</p>
+                <p className="text-sm text-muted-foreground">{tmpl.desc}</p>
+              </div>
+            ))}
+            <Button 
+              onClick={() => {
+                const names = { default: '기본 템플릿', voucher: '바우처 템플릿', insurance: '실비 템플릿' };
+                toast({ title: '내보내기', description: `${names[exportTemplate]}으로 내보내기를 준비합니다. (데모)` });
+                setShowExportDialog(false);
+              }} 
+              className="w-full gap-2"
+            >
+              <FileDown className="h-4 w-4" />
+              내보내기
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -5,9 +5,9 @@ import { useApp } from '@/context/AppContext';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: '대시보드', roles: ['admin'] },
-  { to: '/cases', icon: Users, label: '케이스 (아동)', roles: ['admin', 'therapist', 'parent'] },
+  { to: '/cases', icon: Users, label: '케이스 (아동)', roles: ['admin', 'therapist'] },
   { to: '/reports', icon: FileText, label: '진행 리포트', roles: ['admin', 'therapist', 'parent'] },
-  { to: '/migration', icon: Upload, label: '데이터 마이그레이션', roles: ['admin'] },
+  { to: '/migration', icon: Upload, label: '데이터 마이그레이션', roles: ['admin', 'therapist'] },
   { to: '/settings', icon: Settings, label: '설정', roles: ['admin', 'therapist'] },
 ];
 

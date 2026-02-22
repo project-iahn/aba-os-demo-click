@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Sparkles, Calendar, Target, BarChart3, FileText, User } from 'lucide-react';
+import { ArrowLeft, Calendar, Target, BarChart3, FileText, User, Plus } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,14 +23,11 @@ export default function CaseDetail() {
   const reports = getReportsByChildId(id || '');
   const therapist = child ? getTherapistById(child.therapistId) : undefined;
 
-  // Calculate statistics
   const stats = useMemo(() => {
     if (sessions.length === 0) return { avgSuccessRate: 0, totalSessions: 0, activeGoals: 0 };
-
     const allTrials = sessions.flatMap((s) => s.trials);
     const totalTrials = allTrials.reduce((acc, t) => acc + t.trials, 0);
     const totalSuccesses = allTrials.reduce((acc, t) => acc + t.successes, 0);
-
     return {
       avgSuccessRate: totalTrials > 0 ? Math.round((totalSuccesses / totalTrials) * 100) : 0,
       totalSessions: sessions.length,
@@ -64,16 +61,12 @@ export default function CaseDetail() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - merged overview+goals, removed goals tab */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="overview" className="gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">개요</span>
-          </TabsTrigger>
-          <TabsTrigger value="goals" className="gap-2">
-            <Target className="h-4 w-4" />
-            <span className="hidden sm:inline">목표</span>
           </TabsTrigger>
           <TabsTrigger value="sessions" className="gap-2">
             <Calendar className="h-4 w-4" />
@@ -89,7 +82,7 @@ export default function CaseDetail() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
+        {/* Overview Tab - merged with Goals */}
         <TabsContent value="overview" className="space-y-6">
           {/* Quick Stats */}
           <div className="grid gap-4 sm:grid-cols-3">
@@ -204,10 +197,8 @@ export default function CaseDetail() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
 
-        {/* Goals Tab */}
-        <TabsContent value="goals">
+          {/* Goals Section - integrated into overview */}
           <GoalsTab childId={id || ''} goals={goals} />
         </TabsContent>
 
