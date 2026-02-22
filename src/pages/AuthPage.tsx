@@ -168,7 +168,7 @@ export default function AuthPage() {
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-foreground">
-            아이랑 ABA 행동발달연구소
+            Dear One
           </CardTitle>
           <CardDescription>
             {step === 'mode' && '계정에 로그인하거나 새 계정을 만드세요'}
