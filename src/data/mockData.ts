@@ -465,10 +465,10 @@ export const initialReports: Report[] = [
 ];
 
 export const initialCenterProfile: CenterProfile = {
-  name: '해오름 발달센터',
+  name: '아이랑 ABA 행동발달연구소',
   location: '서울특별시 강남구 테헤란로 123',
   phone: '02-1234-5678',
-  email: 'hello@haeoreum.kr',
+  email: 'hello@airang-aba.kr',
   establishedDate: '2020-03-01',
 };
 
