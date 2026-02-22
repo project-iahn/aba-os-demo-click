@@ -100,7 +100,6 @@ export default function ParentSessionSummary() {
                   {myChildren.map(c => (
                     <span key={c.id} className="flex items-center gap-1">
                       <Badge variant="secondary" className="text-xs font-normal">{c.age}세</Badge>
-                      {c.diagnosis && <span>· {c.diagnosis}</span>}
                       {c.concern && <span>· {c.concern}</span>}
                     </span>
                   ))}
