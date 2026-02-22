@@ -8,21 +8,30 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export default function ParentSessionSummary() {
   const { sessions, goals, children } = useApp();
 
-  const summary = useMemo(() => {
-    const totalSessions = sessions.length;
-    const activeGoals = goals.filter(g => g.status === 'active');
+  // 보호자는 본인 자녀(데모: c1)의 데이터만 표시
+  const PARENT_CHILD_IDS = ['c1'];
+  const myChildren = children.filter(c => PARENT_CHILD_IDS.includes(c.id));
+  const mySessions = sessions.filter(s => PARENT_CHILD_IDS.includes(s.childId));
+  const myGoals = goals.filter(g => {
+    const childIds = myChildren.map(c => c.id);
+    return childIds.includes(g.childId);
+  });
 
-    const allTrials = sessions.flatMap(s => s.trials);
+  const summary = useMemo(() => {
+    const totalSessions = mySessions.length;
+    const activeGoals = myGoals.filter(g => g.status === 'active');
+
+    const allTrials = mySessions.flatMap(s => s.trials);
     const totalTrialCount = allTrials.reduce((a, t) => a + t.trials, 0);
     const totalSuccesses = allTrials.reduce((a, t) => a + t.successes, 0);
     const avgRate = totalTrialCount > 0 ? Math.round((totalSuccesses / totalTrialCount) * 100) : 0;
 
     // Session-by-session success rate for chart
-    const sortedSessions = [...sessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const sortedSessions = [...mySessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const chartData = sortedSessions.slice(-10).map(s => {
       const trials = s.trials.reduce((a, t) => a + t.trials, 0);
       const successes = s.trials.reduce((a, t) => a + t.successes, 0);
-      const child = children.find(c => c.id === s.childId);
+      const child = myChildren.find(c => c.id === s.childId);
       return {
         date: new Date(s.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
         성공률: trials > 0 ? Math.round((successes / trials) * 100) : 0,
@@ -32,13 +41,13 @@ export default function ParentSessionSummary() {
 
     // Goal-level stats
     const goalStats = activeGoals.map(goal => {
-      const goalTrials = sessions.flatMap(s => s.trials.filter(t => t.goalId === goal.id));
+      const goalTrials = mySessions.flatMap(s => s.trials.filter(t => t.goalId === goal.id));
       const total = goalTrials.reduce((a, t) => a + t.trials, 0);
       const succ = goalTrials.reduce((a, t) => a + t.successes, 0);
       const rate = total > 0 ? Math.round((succ / total) * 100) : 0;
 
       // Trend: compare last 3 vs previous 3
-      const sorted = [...sessions]
+      const sorted = [...mySessions]
         .filter(s => s.trials.some(t => t.goalId === goal.id))
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       const recent = sorted.slice(0, 3).flatMap(s => s.trials.filter(t => t.goalId === goal.id));
@@ -53,7 +62,7 @@ export default function ParentSessionSummary() {
     // Recent vs older comparison
     const recentSessions = sortedSessions.slice(-3);
     const olderSessions = sortedSessions.slice(-6, -3);
-    const getRate = (ss: typeof sessions) => {
+    const getRate = (ss: typeof mySessions) => {
       const t = ss.flatMap(s => s.trials);
       const total = t.reduce((a, x) => a + x.trials, 0);
       const succ = t.reduce((a, x) => a + x.successes, 0);
@@ -71,7 +80,7 @@ export default function ParentSessionSummary() {
     }));
 
     return { totalSessions, activeGoals: activeGoals.length, avgRate, recentRate, trendDirection, chartData, goalStats, goalChartData };
-  }, [sessions, goals, children]);
+  }, [mySessions, myGoals, myChildren]);
 
   return (
     <div className="animate-fade-in space-y-6">

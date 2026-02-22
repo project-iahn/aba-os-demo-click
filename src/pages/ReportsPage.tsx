@@ -23,9 +23,17 @@ export default function ReportsPage() {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exportTemplate, setExportTemplate] = useState<'default' | 'voucher' | 'insurance'>('default');
 
-  const filteredReports = selectedChildId
-    ? reports.filter((r) => r.childId === selectedChildId)
+  const isParent = role === 'parent';
+
+  // 보호자는 본인 자녀(데모: c1)의 리포트만 볼 수 있음
+  const PARENT_CHILD_IDS = ['c1'];
+  const baseReports = isParent
+    ? reports.filter((r) => PARENT_CHILD_IDS.includes(r.childId))
     : reports;
+
+  const filteredReports = selectedChildId
+    ? baseReports.filter((r) => r.childId === selectedChildId)
+    : baseReports;
 
   const sortedReports = [...filteredReports].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -38,8 +46,6 @@ export default function ReportsPage() {
     acc[childName].push(report);
     return acc;
   }, {} as Record<string, Report[]>);
-
-  const isParent = role === 'parent';
 
   return (
     <div className="animate-fade-in space-y-6">
