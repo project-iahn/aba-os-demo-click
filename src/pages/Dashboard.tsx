@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Users, Calendar, TrendingDown, FileText, AlertTriangle, Clock, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
+import { Users, Calendar, TrendingDown, TrendingUp, FileText, AlertTriangle, Clock, ArrowRight, ChevronDown, ChevronRight, DollarSign, CreditCard, Receipt, PieChart } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Progress } from '@/components/ui/progress';
 
 export default function Dashboard() {
   const { children, sessions, reports, goals, therapists } = useApp();
@@ -54,7 +58,6 @@ export default function Dashboard() {
     return { childrenNeedingReports, childrenWithDecline };
   }, [children, sessions, reports]);
 
-  // Group recent sessions by therapist
   const recentSessionsByTherapist = useMemo(() => {
     const sorted = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const grouped: Record<string, typeof sessions> = {};
@@ -62,12 +65,57 @@ export default function Dashboard() {
       if (!grouped[s.therapistId]) grouped[s.therapistId] = [];
       grouped[s.therapistId].push(s);
     }
-    // Only keep recent 5 per therapist
     for (const key of Object.keys(grouped)) {
       grouped[key] = grouped[key].slice(0, 5);
     }
     return grouped;
   }, [sessions]);
+
+  // Case management summary
+  const caseManagement = useMemo(() => {
+    const active = children.filter(c => c.status === 'active');
+    const pending = children.filter(c => c.status === 'pending');
+    const inactive = children.filter(c => c.status === 'inactive');
+    const totalGoals = goals.length;
+    const masteredGoals = goals.filter(g => g.status === 'mastered').length;
+    const activeGoals = goals.filter(g => g.status === 'active').length;
+
+    // Therapist workload
+    const therapistWorkload = therapists.map(t => {
+      const caseCount = children.filter(c => c.therapistId === t.id && c.status === 'active').length;
+      const sessionCount = sessions.filter(s => s.therapistId === t.id).length;
+      return { ...t, activeCases: caseCount, totalSessions: sessionCount };
+    });
+
+    return { active, pending, inactive, totalGoals, masteredGoals, activeGoals, therapistWorkload };
+  }, [children, goals, sessions, therapists]);
+
+  // Mock accounting data
+  const accounting = useMemo(() => {
+    const activeCases = children.filter(c => c.status === 'active').length;
+    const totalSessionsMonth = sessions.filter(s => {
+      const d = new Date(s.date);
+      const now = new Date();
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+
+    // Mock financial data
+    const sessionFee = 50000; // 5만원 per session
+    const monthlyRevenue = totalSessionsMonth * sessionFee;
+    const voucherCount = Math.floor(activeCases * 0.6);
+    const insuranceCount = Math.floor(activeCases * 0.3);
+    const selfPayCount = activeCases - voucherCount - insuranceCount;
+
+    return {
+      monthlyRevenue,
+      totalSessionsMonth,
+      voucherCount,
+      insuranceCount,
+      selfPayCount,
+      pendingClaims: voucherCount + insuranceCount,
+      collectedRate: 78,
+    };
+  }, [children, sessions]);
 
   const toggleTherapist = (id: string) => {
     setExpandedTherapists(prev => ({ ...prev, [id]: !prev[id] }));
@@ -134,7 +182,6 @@ export default function Dashboard() {
                       </Badge>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">케이스를 클릭하여 리포트를 생성하세요</p>
                 </div>
               ) : (
                 <p className="text-sm text-success font-medium">✓ 모든 아동의 리포트가 완료되었습니다</p>
@@ -169,7 +216,6 @@ export default function Dashboard() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground">최근 4회 세션 기준 · 케이스를 클릭하여 상세 분석을 확인하세요</p>
                 </div>
               ) : (
                 <p className="text-sm text-success font-medium">✓ 모든 아동이 안정적인 진전을 보이고 있습니다</p>
@@ -178,6 +224,246 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Case Management & Accounting Tabs */}
+      <Tabs defaultValue="cases" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="cases" className="gap-2">
+            <Users className="h-4 w-4" />
+            전체 케이스 관리
+          </TabsTrigger>
+          <TabsTrigger value="accounting" className="gap-2">
+            <DollarSign className="h-4 w-4" />
+            회계 관리
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Case Management Tab */}
+        <TabsContent value="cases" className="space-y-4">
+          {/* Case Status Overview */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">진행중</p>
+                    <p className="text-2xl font-bold text-success">{caseManagement.active.length}</p>
+                  </div>
+                  <Badge className="bg-success/10 text-success border-0">Active</Badge>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">대기중</p>
+                    <p className="text-2xl font-bold text-warning">{caseManagement.pending.length}</p>
+                  </div>
+                  <Badge className="bg-warning/10 text-warning border-0">Pending</Badge>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">종료</p>
+                    <p className="text-2xl font-bold text-muted-foreground">{caseManagement.inactive.length}</p>
+                  </div>
+                  <Badge variant="secondary">Inactive</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Goals Summary */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">목표 현황</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">활성 목표</span>
+                  <span className="font-semibold">{caseManagement.activeGoals}개</span>
+                </div>
+                <Progress value={caseManagement.totalGoals > 0 ? (caseManagement.activeGoals / caseManagement.totalGoals) * 100 : 0} className="h-2" />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">달성 완료</span>
+                  <span className="font-semibold text-success">{caseManagement.masteredGoals}개</span>
+                </div>
+                <Progress value={caseManagement.totalGoals > 0 ? (caseManagement.masteredGoals / caseManagement.totalGoals) * 100 : 0} className="h-2" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Therapist Workload */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">치료사별 업무량</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>치료사</TableHead>
+                    <TableHead>전문분야</TableHead>
+                    <TableHead className="text-center">담당 케이스</TableHead>
+                    <TableHead className="text-center">총 세션</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {caseManagement.therapistWorkload.map(t => (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-medium">{t.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{t.specialization}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="secondary">{t.activeCases}명</Badge>
+                      </TableCell>
+                      <TableCell className="text-center">{t.totalSessions}회</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => navigate('/cases')}>
+              전체 케이스 목록 보기 <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </TabsContent>
+
+        {/* Accounting Tab */}
+        <TabsContent value="accounting" className="space-y-4">
+          {/* Revenue KPIs */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-success/10 p-3">
+                    <DollarSign className="h-5 w-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{(accounting.monthlyRevenue / 10000).toLocaleString()}만원</p>
+                    <p className="text-xs text-muted-foreground">이번 달 예상 매출</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-primary/10 p-3">
+                    <Receipt className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{accounting.pendingClaims}건</p>
+                    <p className="text-xs text-muted-foreground">미청구 건수</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-accent/10 p-3">
+                    <PieChart className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{accounting.collectedRate}%</p>
+                    <p className="text-xs text-muted-foreground">수금률</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Payment Type Breakdown */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">결제 유형별 현황</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-3 w-3 rounded-full bg-primary" />
+                    <span className="text-sm">발달재활 바우처</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium">{accounting.voucherCount}명</span>
+                    <Progress value={(accounting.voucherCount / (children.filter(c => c.status === 'active').length || 1)) * 100} className="h-2 w-24" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-3 w-3 rounded-full bg-accent" />
+                    <span className="text-sm">실비 보험</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium">{accounting.insuranceCount}명</span>
+                    <Progress value={(accounting.insuranceCount / (children.filter(c => c.status === 'active').length || 1)) * 100} className="h-2 w-24" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-3 w-3 rounded-full bg-muted-foreground" />
+                    <span className="text-sm">자비 부담</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium">{accounting.selfPayCount}명</span>
+                    <Progress value={(accounting.selfPayCount / (children.filter(c => c.status === 'active').length || 1)) * 100} className="h-2 w-24" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Monthly Session Billing */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">이번 달 세션 청구 내역</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>항목</TableHead>
+                    <TableHead className="text-center">건수</TableHead>
+                    <TableHead className="text-right">금액</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>바우처 세션</TableCell>
+                    <TableCell className="text-center">{Math.floor(accounting.totalSessionsMonth * 0.6)}회</TableCell>
+                    <TableCell className="text-right">{(Math.floor(accounting.totalSessionsMonth * 0.6) * 50000 / 10000).toLocaleString()}만원</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>실비 세션</TableCell>
+                    <TableCell className="text-center">{Math.floor(accounting.totalSessionsMonth * 0.3)}회</TableCell>
+                    <TableCell className="text-right">{(Math.floor(accounting.totalSessionsMonth * 0.3) * 50000 / 10000).toLocaleString()}만원</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>자비 세션</TableCell>
+                    <TableCell className="text-center">{accounting.totalSessionsMonth - Math.floor(accounting.totalSessionsMonth * 0.6) - Math.floor(accounting.totalSessionsMonth * 0.3)}회</TableCell>
+                    <TableCell className="text-right">{((accounting.totalSessionsMonth - Math.floor(accounting.totalSessionsMonth * 0.6) - Math.floor(accounting.totalSessionsMonth * 0.3)) * 50000 / 10000).toLocaleString()}만원</TableCell>
+                  </TableRow>
+                  <TableRow className="font-semibold border-t-2">
+                    <TableCell>합계</TableCell>
+                    <TableCell className="text-center">{accounting.totalSessionsMonth}회</TableCell>
+                    <TableCell className="text-right">{(accounting.monthlyRevenue / 10000).toLocaleString()}만원</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="text-xs text-muted-foreground mt-3">* 세션당 단가 50,000원 기준 (데모 데이터)</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Recent Sessions - grouped by therapist */}
       <Card>
@@ -191,7 +477,6 @@ export default function Dashboard() {
           {sessions.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center gap-2">
               <p className="text-sm text-muted-foreground">아직 기록된 세션이 없습니다</p>
-              <p className="text-xs text-muted-foreground">케이스를 선택하고 세션을 기록해보세요</p>
             </div>
           ) : (
             <div className="space-y-3">
