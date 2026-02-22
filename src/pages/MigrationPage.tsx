@@ -105,15 +105,15 @@ export default function MigrationPage() {
     skipped: number;
   } | null>(null);
 
-  // Only admin can access
-  if (role !== 'admin') {
+  // Admin and therapist can access
+  if (role !== 'admin' && role !== 'therapist') {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <Card className="max-w-md text-center p-6">
           <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
           <h2 className="text-lg font-semibold mb-2">접근 권한 없음</h2>
           <p className="text-muted-foreground">
-            데이터 마이그레이션은 센터 관리자만 이용할 수 있습니다.
+            데이터 마이그레이션은 센터 관리자 및 치료사만 이용할 수 있습니다.
           </p>
         </Card>
       </div>
