@@ -46,6 +46,7 @@ interface AppContextType extends AppState {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+
 const getInitialState = (): AppState => ({
   role: 'admin',
   children: [...initialChildren],
