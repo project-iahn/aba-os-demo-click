@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, FileDown, Activity, TrendingUp, Target, BarChart3 } from 'lucide-react';
+import { FileText, Calendar, FileDown } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,10 +13,9 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { Report } from '@/data/mockData';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function ReportsPage() {
-  const { reports, children, sessions, goals, role } = useApp();
+  const { reports, children, role } = useApp();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedChildId, setSelectedChildId] = useState('');
@@ -40,116 +39,18 @@ export default function ReportsPage() {
     return acc;
   }, {} as Record<string, Report[]>);
 
-  // Parent session summary with trend data
-  const parentSessionSummary = useMemo(() => {
-    if (role !== 'parent') return null;
-
-    const totalSessions = sessions.length;
-    const activeGoals = goals.filter(g => g.status === 'active').length;
-
-    const allTrials = sessions.flatMap(s => s.trials);
-    const totalTrialCount = allTrials.reduce((a, t) => a + t.trials, 0);
-    const totalSuccesses = allTrials.reduce((a, t) => a + t.successes, 0);
-    const avgRate = totalTrialCount > 0 ? Math.round((totalSuccesses / totalTrialCount) * 100) : 0;
-
-    // Session-by-session success rate for chart
-    const sortedSessions = [...sessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const chartData = sortedSessions.slice(-10).map(s => {
-      const trials = s.trials.reduce((a, t) => a + t.trials, 0);
-      const successes = s.trials.reduce((a, t) => a + t.successes, 0);
-      return {
-        date: new Date(s.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
-        성공률: trials > 0 ? Math.round((successes / trials) * 100) : 0,
-      };
-    });
-
-    // Recent vs older comparison
-    const recentSessions = sortedSessions.slice(-3);
-    const olderSessions = sortedSessions.slice(-6, -3);
-    const getRate = (ss: typeof sessions) => {
-      const t = ss.flatMap(s => s.trials);
-      const total = t.reduce((a, x) => a + x.trials, 0);
-      const succ = t.reduce((a, x) => a + x.successes, 0);
-      return total > 0 ? Math.round((succ / total) * 100) : 0;
-    };
-    const recentRate = getRate(recentSessions);
-    const olderRate = getRate(olderSessions);
-    const trendDirection = recentRate > olderRate ? 'up' : recentRate < olderRate ? 'down' : 'stable';
-
-    return { totalSessions, activeGoals, avgRate, recentRate, olderRate, trendDirection, chartData };
-  }, [role, sessions, goals]);
-
   const isParent = role === 'parent';
 
   return (
     <div className="animate-fade-in space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">
-          {isParent ? '자녀 치료 현황' : '리포트'}
-        </h1>
+        <h1 className="text-2xl font-bold text-foreground">진행 리포트</h1>
         <p className="text-muted-foreground">
-          {isParent ? '세션 요약과 진행 리포트를 확인하세요' : '생성된 모든 리포트를 조회하세요'}
+          {isParent ? '자녀의 치료 진행 리포트를 확인하세요' : '생성된 모든 리포트를 조회하세요'}
         </p>
       </div>
 
-      {/* ===== PARENT: Session Summary Banner ===== */}
-      {isParent && parentSessionSummary && (
-        <Card className="border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              세션 요약
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {/* KPI row */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-lg bg-primary/5 p-3 text-center">
-                <p className="text-2xl font-bold text-primary">{parentSessionSummary.totalSessions}</p>
-                <p className="text-xs text-muted-foreground mt-1">총 세션</p>
-              </div>
-              <div className="rounded-lg bg-accent/5 p-3 text-center">
-                <p className="text-2xl font-bold text-accent">{parentSessionSummary.activeGoals}</p>
-                <p className="text-xs text-muted-foreground mt-1">활성 목표</p>
-              </div>
-              <div className="rounded-lg bg-success/5 p-3 text-center">
-                <p className="text-2xl font-bold text-success">{parentSessionSummary.avgRate}%</p>
-                <p className="text-xs text-muted-foreground mt-1">전체 평균 성공률</p>
-              </div>
-              <div className="rounded-lg bg-muted p-3 text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <p className="text-2xl font-bold text-foreground">{parentSessionSummary.recentRate}%</p>
-                  {parentSessionSummary.trendDirection === 'up' && <TrendingUp className="h-4 w-4 text-success" />}
-                  {parentSessionSummary.trendDirection === 'down' && <TrendingUp className="h-4 w-4 text-destructive rotate-180" />}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">최근 추이</p>
-              </div>
-            </div>
-
-            {/* Chart */}
-            {parentSessionSummary.chartData.length > 1 && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">성공률 추이 (최근 10회)</p>
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={parentSessionSummary.chartData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-                      <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
-                      <Tooltip
-                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
-                        formatter={(value: number) => [`${value}%`, '성공률']}
-                      />
-                      <Line type="monotone" dataKey="성공률" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* ===== PARENT: Report Banner ===== */}
       {isParent && (

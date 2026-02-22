@@ -8,7 +8,7 @@ export function RoleRedirect() {
     return <Navigate to="/dashboard" replace />;
   }
   if (role === 'parent') {
-    return <Navigate to="/reports" replace />;
+    return <Navigate to="/session-summary" replace />;
   }
   return <Navigate to="/cases" replace />;
 }
