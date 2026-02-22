@@ -1,4 +1,5 @@
-import { Search, RotateCcw, Shield, User, Users } from 'lucide-react';
+import { Search, RotateCcw, Shield, User, Users, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/context/AppContext';
@@ -13,7 +14,7 @@ const roles: { value: Role; label: string; icon: React.ElementType }[] = [
 
 export function TopBar() {
   const { role, setRole, resetData } = useApp();
-
+  const navigate = useNavigate();
   return (
     <header className="fixed left-64 right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Search */}
@@ -26,8 +27,18 @@ export function TopBar() {
         />
       </div>
 
-      {/* Right section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        {/* Login Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/auth')}
+          className="gap-2"
+        >
+          <LogIn className="h-4 w-4" />
+          <span className="hidden sm:inline">로그인</span>
+        </Button>
+
         {/* Role Switcher */}
         <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
           {roles.map((r) => (
