@@ -416,6 +416,7 @@ export default function CasesList() {
           </TableBody>
         </Table>
       </div>
+      <p className="text-xs text-muted-foreground text-center">※ 각 케이스를 클릭하면 상세 정보를 확인할 수 있습니다.</p>
 
       {/* Pagination */}
       {totalPages > 1 && (
