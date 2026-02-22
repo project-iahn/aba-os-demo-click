@@ -1,25 +1,19 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Download, Calendar, FileDown, BarChart3, Target, Activity } from 'lucide-react';
+import { FileText, Calendar, FileDown, Activity, TrendingUp, Target, BarChart3 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { Report } from '@/data/mockData';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function ReportsPage() {
   const { reports, children, sessions, goals, role } = useApp();
@@ -46,139 +40,220 @@ export default function ReportsPage() {
     return acc;
   }, {} as Record<string, Report[]>);
 
-  // Parent summary stats
-  const parentSummary = useMemo(() => {
+  // Parent session summary with trend data
+  const parentSessionSummary = useMemo(() => {
     if (role !== 'parent') return null;
-    const activeChildren = children.filter(c => c.status === 'active');
+
     const totalSessions = sessions.length;
     const activeGoals = goals.filter(g => g.status === 'active').length;
 
-    // Avg success rate across all sessions
     const allTrials = sessions.flatMap(s => s.trials);
     const totalTrialCount = allTrials.reduce((a, t) => a + t.trials, 0);
     const totalSuccesses = allTrials.reduce((a, t) => a + t.successes, 0);
     const avgRate = totalTrialCount > 0 ? Math.round((totalSuccesses / totalTrialCount) * 100) : 0;
 
-    // Recent trend
-    const recentSessions = [...sessions]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 3);
-    const recentTrials = recentSessions.flatMap(s => s.trials);
-    const recentTotal = recentTrials.reduce((a, t) => a + t.trials, 0);
-    const recentSuccesses = recentTrials.reduce((a, t) => a + t.successes, 0);
-    const recentRate = recentTotal > 0 ? Math.round((recentSuccesses / recentTotal) * 100) : 0;
+    // Session-by-session success rate for chart
+    const sortedSessions = [...sessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const chartData = sortedSessions.slice(-10).map(s => {
+      const trials = s.trials.reduce((a, t) => a + t.trials, 0);
+      const successes = s.trials.reduce((a, t) => a + t.successes, 0);
+      return {
+        date: new Date(s.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+        성공률: trials > 0 ? Math.round((successes / trials) * 100) : 0,
+      };
+    });
 
-    return { activeChildren: activeChildren.length, totalSessions, activeGoals, avgRate, recentRate };
-  }, [role, children, sessions, goals]);
+    // Recent vs older comparison
+    const recentSessions = sortedSessions.slice(-3);
+    const olderSessions = sortedSessions.slice(-6, -3);
+    const getRate = (ss: typeof sessions) => {
+      const t = ss.flatMap(s => s.trials);
+      const total = t.reduce((a, x) => a + x.trials, 0);
+      const succ = t.reduce((a, x) => a + x.successes, 0);
+      return total > 0 ? Math.round((succ / total) * 100) : 0;
+    };
+    const recentRate = getRate(recentSessions);
+    const olderRate = getRate(olderSessions);
+    const trendDirection = recentRate > olderRate ? 'up' : recentRate < olderRate ? 'down' : 'stable';
+
+    return { totalSessions, activeGoals, avgRate, recentRate, olderRate, trendDirection, chartData };
+  }, [role, sessions, goals]);
+
+  const isParent = role === 'parent';
 
   return (
     <div className="animate-fade-in space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">리포트</h1>
-          <p className="text-muted-foreground">
-            {role === 'parent' ? '자녀의 치료 진행 리포트를 확인하세요' : '생성된 모든 리포트를 조회하세요'}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">
+          {isParent ? '자녀 치료 현황' : '리포트'}
+        </h1>
+        <p className="text-muted-foreground">
+          {isParent ? '세션 요약과 진행 리포트를 확인하세요' : '생성된 모든 리포트를 조회하세요'}
+        </p>
       </div>
 
-      {/* Parent Summary Banner */}
-      {parentSummary && (
-        <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-          <CardContent className="p-5">
-            <h3 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+      {/* ===== PARENT: Session Summary Banner ===== */}
+      {isParent && parentSessionSummary && (
+        <Card className="border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              세션 및 분석 요약
-            </h3>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div className="rounded-lg bg-card p-3 text-center">
-                <p className="text-2xl font-bold text-primary">{parentSummary.totalSessions}</p>
-                <p className="text-xs text-muted-foreground mt-1">총 세션 수</p>
+              세션 요약
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {/* KPI row */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-lg bg-primary/5 p-3 text-center">
+                <p className="text-2xl font-bold text-primary">{parentSessionSummary.totalSessions}</p>
+                <p className="text-xs text-muted-foreground mt-1">총 세션</p>
               </div>
-              <div className="rounded-lg bg-card p-3 text-center">
-                <p className="text-2xl font-bold text-accent">{parentSummary.activeGoals}</p>
+              <div className="rounded-lg bg-accent/5 p-3 text-center">
+                <p className="text-2xl font-bold text-accent">{parentSessionSummary.activeGoals}</p>
                 <p className="text-xs text-muted-foreground mt-1">활성 목표</p>
               </div>
-              <div className="rounded-lg bg-card p-3 text-center">
-                <p className="text-2xl font-bold text-success">{parentSummary.avgRate}%</p>
+              <div className="rounded-lg bg-success/5 p-3 text-center">
+                <p className="text-2xl font-bold text-success">{parentSessionSummary.avgRate}%</p>
                 <p className="text-xs text-muted-foreground mt-1">전체 평균 성공률</p>
               </div>
-              <div className="rounded-lg bg-card p-3 text-center">
-                <p className="text-2xl font-bold text-foreground">{parentSummary.recentRate}%</p>
-                <p className="text-xs text-muted-foreground mt-1">최근 3회 성공률</p>
+              <div className="rounded-lg bg-muted p-3 text-center">
+                <div className="flex items-center justify-center gap-1">
+                  <p className="text-2xl font-bold text-foreground">{parentSessionSummary.recentRate}%</p>
+                  {parentSessionSummary.trendDirection === 'up' && <TrendingUp className="h-4 w-4 text-success" />}
+                  {parentSessionSummary.trendDirection === 'down' && <TrendingUp className="h-4 w-4 text-destructive rotate-180" />}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">최근 추이</p>
               </div>
             </div>
+
+            {/* Chart */}
+            {parentSessionSummary.chartData.length > 1 && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-2">성공률 추이 (최근 10회)</p>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={parentSessionSummary.chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                      <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+                        formatter={(value: number) => [`${value}%`, '성공률']}
+                      />
+                      <Line type="monotone" dataKey="성공률" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Filter */}
-      <div className="flex items-center gap-4">
-        <Select
-          value={selectedChildId || "all"}
-          onValueChange={(value) => setSelectedChildId(value === "all" ? "" : value)}
-        >
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="아동 선택" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">전체</SelectItem>
-            {children.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <p className="text-sm text-muted-foreground">총 {sortedReports.length}개 리포트</p>
-      </div>
-
-      {/* Reports Grid */}
-      {sortedReports.length === 0 ? (
-        <Card>
-          <CardContent className="flex h-48 items-center justify-center">
-            <div className="text-center">
-              <FileText className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
-              <p className="text-muted-foreground">생성된 리포트가 없습니다</p>
-              <p className="text-sm text-muted-foreground">
-                {role === 'parent' ? '치료사가 리포트를 생성하면 여기에 표시됩니다' : '아동 상세 페이지에서 AI 리포트를 생성해보세요'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(reportsByChild).map(([childName, childReports]) => (
-            <div key={childName}>
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                  {childName.charAt(0)}
-                </div>
-                {childName}
-                <Badge variant="secondary" className="ml-2">{childReports.length}</Badge>
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {childReports.map((report) => (
-                  <Card key={report.id} className="cursor-pointer transition-all hover:shadow-md" onClick={() => setSelectedReport(report)}>
-                    <CardContent className="p-4">
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
-                          <FileText className="h-5 w-5 text-accent" />
+      {/* ===== PARENT: Report Banner ===== */}
+      {isParent && (
+        <Card className="border-accent/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="h-5 w-5 text-accent" />
+              진행 리포트
+              <Badge variant="secondary" className="ml-auto">{sortedReports.length}건</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sortedReports.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">치료사가 리포트를 생성하면 여기에 표시됩니다</p>
+            ) : (
+              <div className="space-y-6">
+                {Object.entries(reportsByChild).map(([childName, childReports]) => (
+                  <div key={childName}>
+                    <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                        {childName.charAt(0)}
+                      </div>
+                      {childName}
+                    </h3>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {childReports.map((report) => (
+                        <div
+                          key={report.id}
+                          className="flex items-center gap-3 rounded-lg border border-border/50 p-3 cursor-pointer hover:bg-muted/30 transition-colors"
+                          onClick={() => setSelectedReport(report)}
+                        >
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 shrink-0">
+                            <FileText className="h-4 w-4 text-accent" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{report.title}</p>
+                            <p className="text-xs text-muted-foreground">{new Date(report.createdAt).toLocaleDateString('ko-KR')}</p>
+                          </div>
                         </div>
-                        <Badge variant="outline">{report.period}</Badge>
-                      </div>
-                      <h3 className="mb-1 font-medium">{report.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(report.createdAt).toLocaleDateString('ko-KR')}
-                      </div>
-                      <p className="mt-2 text-xs text-muted-foreground">작성자: {report.createdBy}</p>
-                    </CardContent>
-                  </Card>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ===== NON-PARENT: Original filter + grid ===== */}
+      {!isParent && (
+        <>
+          <div className="flex items-center gap-4">
+            <Select value={selectedChildId || "all"} onValueChange={(value) => setSelectedChildId(value === "all" ? "" : value)}>
+              <SelectTrigger className="w-48"><SelectValue placeholder="아동 선택" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체</SelectItem>
+                {children.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">총 {sortedReports.length}개 리포트</p>
+          </div>
+
+          {sortedReports.length === 0 ? (
+            <Card>
+              <CardContent className="flex h-48 items-center justify-center">
+                <div className="text-center">
+                  <FileText className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
+                  <p className="text-muted-foreground">생성된 리포트가 없습니다</p>
+                  <p className="text-sm text-muted-foreground">아동 상세 페이지에서 AI 리포트를 생성해보세요</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(reportsByChild).map(([childName, childReports]) => (
+                <div key={childName}>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{childName.charAt(0)}</div>
+                    {childName}
+                    <Badge variant="secondary" className="ml-2">{childReports.length}</Badge>
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {childReports.map((report) => (
+                      <Card key={report.id} className="cursor-pointer transition-all hover:shadow-md" onClick={() => setSelectedReport(report)}>
+                        <CardContent className="p-4">
+                          <div className="mb-3 flex items-start justify-between">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10"><FileText className="h-5 w-5 text-accent" /></div>
+                            <Badge variant="outline">{report.period}</Badge>
+                          </div>
+                          <h3 className="mb-1 font-medium">{report.title}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="h-3 w-3" />{new Date(report.createdAt).toLocaleDateString('ko-KR')}
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground">작성자: {report.createdBy}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {/* Report Detail Dialog */}
@@ -191,29 +266,22 @@ export default function ReportsPage() {
                   <div>
                     <DialogTitle>{selectedReport.title}</DialogTitle>
                     <p className="text-sm text-muted-foreground">
-                      {children.find((c) => c.id === selectedReport.childId)?.name} ·{' '}
-                      {new Date(selectedReport.createdAt).toLocaleDateString('ko-KR')} ·{' '}
-                      {selectedReport.createdBy}
+                      {children.find((c) => c.id === selectedReport.childId)?.name} · {new Date(selectedReport.createdAt).toLocaleDateString('ko-KR')} · {selectedReport.createdBy}
                     </p>
                   </div>
-                  {role !== 'parent' && (
+                  {!isParent && (
                     <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowExportDialog(true)}>
-                      <FileDown className="h-4 w-4" />
-                      내보내기
+                      <FileDown className="h-4 w-4" />내보내기
                     </Button>
                   )}
                 </div>
               </DialogHeader>
               <div className="mt-4 rounded-lg bg-muted/30 p-6">
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                  {selectedReport.content}
-                </pre>
+                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">{selectedReport.content}</pre>
               </div>
-              {role !== 'parent' && (
+              {!isParent && (
                 <div className="mt-4 flex justify-end">
-                  <Button variant="outline" onClick={() => { setSelectedReport(null); navigate(`/cases/${selectedReport.childId}`); }}>
-                    아동 상세 보기
-                  </Button>
+                  <Button variant="outline" onClick={() => { setSelectedReport(null); navigate(`/cases/${selectedReport.childId}`); }}>아동 상세 보기</Button>
                 </div>
               )}
             </>
@@ -224,36 +292,20 @@ export default function ReportsPage() {
       {/* Export Template Dialog */}
       <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>내보내기 템플릿 선택</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>내보내기 템플릿 선택</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             {[
               { value: 'default' as const, label: '기본 템플릿', desc: '표준 진행 리포트 양식' },
               { value: 'voucher' as const, label: '바우처 템플릿', desc: '발달재활 바우처 제출용 양식' },
               { value: 'insurance' as const, label: '실비 템플릿', desc: '실비 보험 청구용 양식' },
             ].map(tmpl => (
-              <div
-                key={tmpl.value}
-                className={`cursor-pointer rounded-lg border p-4 transition-all ${
-                  exportTemplate === tmpl.value ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/50'
-                }`}
-                onClick={() => setExportTemplate(tmpl.value)}
-              >
+              <div key={tmpl.value} className={`cursor-pointer rounded-lg border p-4 transition-all ${exportTemplate === tmpl.value ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:border-primary/50'}`} onClick={() => setExportTemplate(tmpl.value)}>
                 <p className="font-medium">{tmpl.label}</p>
                 <p className="text-sm text-muted-foreground">{tmpl.desc}</p>
               </div>
             ))}
-            <Button
-              onClick={() => {
-                const names = { default: '기본 템플릿', voucher: '바우처 템플릿', insurance: '실비 템플릿' };
-                toast({ title: '내보내기', description: `${names[exportTemplate]}으로 내보내기를 준비합니다. (데모)` });
-                setShowExportDialog(false);
-              }}
-              className="w-full gap-2"
-            >
-              <FileDown className="h-4 w-4" />
-              내보내기
+            <Button onClick={() => { const names = { default: '기본 템플릿', voucher: '바우처 템플릿', insurance: '실비 템플릿' }; toast({ title: '내보내기', description: `${names[exportTemplate]}으로 내보내기를 준비합니다. (데모)` }); setShowExportDialog(false); }} className="w-full gap-2">
+              <FileDown className="h-4 w-4" />내보내기
             </Button>
           </div>
         </DialogContent>
