@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, TrendingUp, TrendingDown, Minus, Search, ArrowUpDown, FileCheck, FileX } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, Search, ArrowUpDown, FileCheck, FileX, ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,10 +29,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Child } from '@/data/mockData';
 
 type SortField = 'lastSession' | 'successRate' | 'name';
 type SortDirection = 'asc' | 'desc';
+
+const ITEMS_PER_PAGE = 5;
+
+// Mock schedule data
+const mockSchedule = [
+  { id: 's1', childName: '김하늘', therapist: '김민지', time: '09:00', duration: 40, day: '월' },
+  { id: 's2', childName: '이서준', therapist: '이준혁', time: '10:00', duration: 40, day: '월' },
+  { id: 's3', childName: '박지우', therapist: '박서연', time: '11:00', duration: 40, day: '월' },
+  { id: 's4', childName: '김하늘', therapist: '김민지', time: '09:00', duration: 40, day: '수' },
+  { id: 's5', childName: '이서준', therapist: '이준혁', time: '14:00', duration: 40, day: '수' },
+  { id: 's6', childName: '박지우', therapist: '박서연', time: '10:00', duration: 40, day: '금' },
+  { id: 's7', childName: '김하늘', therapist: '김민지', time: '14:00', duration: 40, day: '금' },
+];
+
+const WEEKDAYS = ['월', '화', '수', '목', '금'];
 
 export default function CasesList() {
   const { children, therapists, sessions, reports, addChild, role } = useApp();
@@ -41,6 +57,7 @@ export default function CasesList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sortField, setSortField] = useState<SortField>('lastSession');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
   const [newChild, setNewChild] = useState<Partial<Child>>({
     status: 'active',
     trend: 'stable',
@@ -97,6 +114,16 @@ export default function CasesList() {
     return filtered;
   }, [children, searchQuery, sortField, sortDirection, childStats]);
 
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedChildren.length / ITEMS_PER_PAGE));
+  const paginatedChildren = filteredAndSortedChildren.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset page when search changes
+  useMemo(() => { setCurrentPage(1); }, [searchQuery]);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -138,22 +165,19 @@ export default function CasesList() {
       case 'up':
         return (
           <Badge className="gap-1 bg-success/10 text-success border-success/20">
-            <TrendingUp className="h-3 w-3" />
-            개선
+            <TrendingUp className="h-3 w-3" />개선
           </Badge>
         );
       case 'down':
         return (
           <Badge className="gap-1 bg-destructive/10 text-destructive border-destructive/20">
-            <TrendingDown className="h-3 w-3" />
-            저하
+            <TrendingDown className="h-3 w-3" />저하
           </Badge>
         );
       default:
         return (
           <Badge className="gap-1 bg-muted text-muted-foreground">
-            <Minus className="h-3 w-3" />
-            유지
+            <Minus className="h-3 w-3" />유지
           </Badge>
         );
     }
@@ -164,15 +188,13 @@ export default function CasesList() {
     if (hasReport) {
       return (
         <Badge className="gap-1 bg-success/10 text-success border-success/20">
-          <FileCheck className="h-3 w-3" />
-          완료
+          <FileCheck className="h-3 w-3" />완료
         </Badge>
       );
     }
     return (
       <Badge className="gap-1 bg-warning/10 text-warning border-warning/20">
-        <FileX className="h-3 w-3" />
-        필요
+        <FileX className="h-3 w-3" />필요
       </Badge>
     );
   };
@@ -188,8 +210,8 @@ export default function CasesList() {
     }
   };
 
-  // Only admin can create new cases
-  const canCreate = role === 'admin';
+  // Admin and therapist can create new cases
+  const canCreate = role === 'admin' || role === 'therapist';
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -357,7 +379,7 @@ export default function CasesList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAndSortedChildren.map((child) => {
+            {paginatedChildren.map((child) => {
               const successRate = childStats[child.id]?.successRate || 0;
               return (
                 <TableRow
@@ -391,7 +413,7 @@ export default function CasesList() {
                 </TableRow>
               );
             })}
-            {filteredAndSortedChildren.length === 0 && (
+            {paginatedChildren.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   검색 결과가 없습니다
@@ -402,10 +424,73 @@ export default function CasesList() {
         </Table>
       </div>
 
-      {/* Helper text */}
-      <p className="text-xs text-muted-foreground text-center">
-        케이스를 클릭하면 상세 정보, 세션 기록, 분석 차트, 리포트를 확인할 수 있습니다
-      </p>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <Button
+              key={page}
+              variant={currentPage === page ? 'default' : 'outline'}
+              size="sm"
+              className="w-9"
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </Button>
+          ))}
+          <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground ml-2">
+            총 {filteredAndSortedChildren.length}명
+          </span>
+        </div>
+      )}
+
+      {/* Weekly Scheduler */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            주간 스케줄
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-5 gap-3">
+            {WEEKDAYS.map(day => {
+              const daySchedules = mockSchedule.filter(s => s.day === day);
+              return (
+                <div key={day} className="space-y-2">
+                  <div className="text-center">
+                    <Badge variant="secondary" className="text-xs font-semibold">{day}</Badge>
+                  </div>
+                  {daySchedules.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-border/50 p-3 text-center">
+                      <p className="text-xs text-muted-foreground">일정 없음</p>
+                    </div>
+                  ) : (
+                    daySchedules.map(schedule => (
+                      <div key={schedule.id} className="rounded-lg border border-border/50 bg-muted/30 p-2.5 space-y-1 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs font-medium">{schedule.time}</span>
+                          <span className="text-xs text-muted-foreground">({schedule.duration}분)</span>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">{schedule.childName}</p>
+                        <p className="text-xs text-muted-foreground">{schedule.therapist}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3 text-center">* 데모용 주간 스케줄입니다</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
