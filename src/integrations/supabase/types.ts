@@ -14,35 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      centers: {
+        Row: {
+          address: string
+          business_number: string | null
+          created_at: string
+          description: string | null
+          email: string
+          id: string
+          name: string
+          owner_id: string | null
+          phone: string
+          representative_name: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          business_number?: string | null
+          created_at?: string
+          description?: string | null
+          email: string
+          id?: string
+          name: string
+          owner_id?: string | null
+          phone: string
+          representative_name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          business_number?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string
+          id?: string
+          name?: string
+          owner_id?: string | null
+          phone?: string
+          representative_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          center_id: string | null
           created_at: string
           display_name: string
           email: string | null
           id: string
+          is_approved: boolean
           phone: string | null
+          specialization: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          center_id?: string | null
           created_at?: string
           display_name?: string
           email?: string | null
           id?: string
+          is_approved?: boolean
           phone?: string | null
+          specialization?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          center_id?: string | null
           created_at?: string
           display_name?: string
           email?: string | null
           id?: string
+          is_approved?: boolean
           phone?: string | null
+          specialization?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
