@@ -1,8 +1,9 @@
-import { Search, RotateCcw, Shield, User, Users, LogIn } from 'lucide-react';
+import { Search, RotateCcw, Shield, User, Users, LogIn, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import type { Role } from '@/data/mockData';
 
@@ -14,6 +15,7 @@ const roles: { value: Role; label: string; icon: React.ElementType }[] = [
 
 export function TopBar() {
   const { role, setRole, resetData } = useApp();
+  const { session, signOut } = useAuth();
   const navigate = useNavigate();
   return (
     <header className="fixed left-64 right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -28,16 +30,28 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Login Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate('/auth')}
-          className="gap-2"
-        >
-          <LogIn className="h-4 w-4" />
-          <span className="hidden sm:inline">로그인</span>
-        </Button>
+        {/* Login / Logout Button */}
+        {session ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => { await signOut(); navigate('/auth'); }}
+            className="gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">로그아웃</span>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/auth')}
+            className="gap-2"
+          >
+            <LogIn className="h-4 w-4" />
+            <span className="hidden sm:inline">로그인</span>
+          </Button>
+        )}
 
         {/* Role Switcher */}
         <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
