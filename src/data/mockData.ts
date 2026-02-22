@@ -16,6 +16,7 @@ export interface Child {
   lastSessionDate: string;
   trend: 'up' | 'down' | 'stable';
   notes: string;
+  estimatedDevAge?: number; // 발달 추정 연령 (개월)
 }
 
 export interface Goal {
@@ -103,6 +104,7 @@ export const initialChildren: Child[] = [
     lastSessionDate: '2025-01-03',
     trend: 'up',
     notes: '최근 눈맞춤 빈도 증가, 단어 사용량 향상',
+    estimatedDevAge: 42, // 3세 6개월 수준
   },
   {
     id: 'c2',
@@ -120,6 +122,7 @@ export const initialChildren: Child[] = [
     lastSessionDate: '2025-01-02',
     trend: 'stable',
     notes: '감각 조절 활동에 긍정적 반응',
+    estimatedDevAge: 28, // 2세 4개월 수준
   },
   {
     id: 'c3',
@@ -137,6 +140,7 @@ export const initialChildren: Child[] = [
     lastSessionDate: '2024-12-28',
     trend: 'down',
     notes: '최근 세션 참여도 저하, 전환 활동에서 어려움',
+    estimatedDevAge: 54, // 4세 6개월 수준
   },
 ];
 

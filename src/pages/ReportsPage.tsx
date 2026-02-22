@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Download, Calendar, FileDown } from 'lucide-react';
+import { FileText, Download, Calendar, FileDown, BarChart3, Target, Activity } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Report } from '@/data/mockData';
 
 export default function ReportsPage() {
-  const { reports, children } = useApp();
+  const { reports, children, sessions, goals, role } = useApp();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedChildId, setSelectedChildId] = useState('');
@@ -38,16 +38,38 @@ export default function ReportsPage() {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  // Group by child
   const reportsByChild = sortedReports.reduce((acc, report) => {
     const child = children.find((c) => c.id === report.childId);
     const childName = child?.name || '알 수 없음';
-    if (!acc[childName]) {
-      acc[childName] = [];
-    }
+    if (!acc[childName]) acc[childName] = [];
     acc[childName].push(report);
     return acc;
   }, {} as Record<string, Report[]>);
+
+  // Parent summary stats
+  const parentSummary = useMemo(() => {
+    if (role !== 'parent') return null;
+    const activeChildren = children.filter(c => c.status === 'active');
+    const totalSessions = sessions.length;
+    const activeGoals = goals.filter(g => g.status === 'active').length;
+
+    // Avg success rate across all sessions
+    const allTrials = sessions.flatMap(s => s.trials);
+    const totalTrialCount = allTrials.reduce((a, t) => a + t.trials, 0);
+    const totalSuccesses = allTrials.reduce((a, t) => a + t.successes, 0);
+    const avgRate = totalTrialCount > 0 ? Math.round((totalSuccesses / totalTrialCount) * 100) : 0;
+
+    // Recent trend
+    const recentSessions = [...sessions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 3);
+    const recentTrials = recentSessions.flatMap(s => s.trials);
+    const recentTotal = recentTrials.reduce((a, t) => a + t.trials, 0);
+    const recentSuccesses = recentTrials.reduce((a, t) => a + t.successes, 0);
+    const recentRate = recentTotal > 0 ? Math.round((recentSuccesses / recentTotal) * 100) : 0;
+
+    return { activeChildren: activeChildren.length, totalSessions, activeGoals, avgRate, recentRate };
+  }, [role, children, sessions, goals]);
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -55,14 +77,46 @@ export default function ReportsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">리포트</h1>
-          <p className="text-muted-foreground">생성된 모든 리포트를 조회하세요</p>
+          <p className="text-muted-foreground">
+            {role === 'parent' ? '자녀의 치료 진행 리포트를 확인하세요' : '생성된 모든 리포트를 조회하세요'}
+          </p>
         </div>
       </div>
 
+      {/* Parent Summary Banner */}
+      {parentSummary && (
+        <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+          <CardContent className="p-5">
+            <h3 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              세션 및 분석 요약
+            </h3>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="rounded-lg bg-card p-3 text-center">
+                <p className="text-2xl font-bold text-primary">{parentSummary.totalSessions}</p>
+                <p className="text-xs text-muted-foreground mt-1">총 세션 수</p>
+              </div>
+              <div className="rounded-lg bg-card p-3 text-center">
+                <p className="text-2xl font-bold text-accent">{parentSummary.activeGoals}</p>
+                <p className="text-xs text-muted-foreground mt-1">활성 목표</p>
+              </div>
+              <div className="rounded-lg bg-card p-3 text-center">
+                <p className="text-2xl font-bold text-success">{parentSummary.avgRate}%</p>
+                <p className="text-xs text-muted-foreground mt-1">전체 평균 성공률</p>
+              </div>
+              <div className="rounded-lg bg-card p-3 text-center">
+                <p className="text-2xl font-bold text-foreground">{parentSummary.recentRate}%</p>
+                <p className="text-xs text-muted-foreground mt-1">최근 3회 성공률</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filter */}
       <div className="flex items-center gap-4">
-        <Select 
-          value={selectedChildId || "all"} 
+        <Select
+          value={selectedChildId || "all"}
           onValueChange={(value) => setSelectedChildId(value === "all" ? "" : value)}
         >
           <SelectTrigger className="w-48">
@@ -71,15 +125,11 @@ export default function ReportsPage() {
           <SelectContent>
             <SelectItem value="all">전체</SelectItem>
             {children.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.name}
-              </SelectItem>
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <p className="text-sm text-muted-foreground">
-          총 {sortedReports.length}개 리포트
-        </p>
+        <p className="text-sm text-muted-foreground">총 {sortedReports.length}개 리포트</p>
       </div>
 
       {/* Reports Grid */}
@@ -90,7 +140,7 @@ export default function ReportsPage() {
               <FileText className="mx-auto mb-3 h-12 w-12 text-muted-foreground/50" />
               <p className="text-muted-foreground">생성된 리포트가 없습니다</p>
               <p className="text-sm text-muted-foreground">
-                아동 상세 페이지에서 AI 리포트를 생성해보세요
+                {role === 'parent' ? '치료사가 리포트를 생성하면 여기에 표시됩니다' : '아동 상세 페이지에서 AI 리포트를 생성해보세요'}
               </p>
             </div>
           </CardContent>
@@ -104,17 +154,11 @@ export default function ReportsPage() {
                   {childName.charAt(0)}
                 </div>
                 {childName}
-                <Badge variant="secondary" className="ml-2">
-                  {childReports.length}
-                </Badge>
+                <Badge variant="secondary" className="ml-2">{childReports.length}</Badge>
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {childReports.map((report) => (
-                  <Card
-                    key={report.id}
-                    className="cursor-pointer transition-all hover:shadow-md"
-                    onClick={() => setSelectedReport(report)}
-                  >
+                  <Card key={report.id} className="cursor-pointer transition-all hover:shadow-md" onClick={() => setSelectedReport(report)}>
                     <CardContent className="p-4">
                       <div className="mb-3 flex items-start justify-between">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
@@ -127,9 +171,7 @@ export default function ReportsPage() {
                         <Calendar className="h-3 w-3" />
                         {new Date(report.createdAt).toLocaleDateString('ko-KR')}
                       </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        작성자: {report.createdBy}
-                      </p>
+                      <p className="mt-2 text-xs text-muted-foreground">작성자: {report.createdBy}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -154,10 +196,12 @@ export default function ReportsPage() {
                       {selectedReport.createdBy}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowExportDialog(true)}>
-                    <FileDown className="h-4 w-4" />
-                    내보내기
-                  </Button>
+                  {role !== 'parent' && (
+                    <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowExportDialog(true)}>
+                      <FileDown className="h-4 w-4" />
+                      내보내기
+                    </Button>
+                  )}
                 </div>
               </DialogHeader>
               <div className="mt-4 rounded-lg bg-muted/30 p-6">
@@ -165,17 +209,13 @@ export default function ReportsPage() {
                   {selectedReport.content}
                 </pre>
               </div>
-              <div className="mt-4 flex justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedReport(null);
-                    navigate(`/cases/${selectedReport.childId}`);
-                  }}
-                >
-                  아동 상세 보기
-                </Button>
-              </div>
+              {role !== 'parent' && (
+                <div className="mt-4 flex justify-end">
+                  <Button variant="outline" onClick={() => { setSelectedReport(null); navigate(`/cases/${selectedReport.childId}`); }}>
+                    아동 상세 보기
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </DialogContent>
@@ -204,12 +244,12 @@ export default function ReportsPage() {
                 <p className="text-sm text-muted-foreground">{tmpl.desc}</p>
               </div>
             ))}
-            <Button 
+            <Button
               onClick={() => {
                 const names = { default: '기본 템플릿', voucher: '바우처 템플릿', insurance: '실비 템플릿' };
                 toast({ title: '내보내기', description: `${names[exportTemplate]}으로 내보내기를 준비합니다. (데모)` });
                 setShowExportDialog(false);
-              }} 
+              }}
               className="w-full gap-2"
             >
               <FileDown className="h-4 w-4" />
