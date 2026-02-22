@@ -10,6 +10,7 @@ import CasesList from "./pages/CasesList";
 import CaseDetail from "./pages/CaseDetail";
 import SessionsPage from "./pages/SessionsPage";
 import ReportsPage from "./pages/ReportsPage";
+import ParentSessionSummary from "./pages/ParentSessionSummary";
 import SettingsPage from "./pages/SettingsPage";
 import MigrationPage from "./pages/MigrationPage";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/cases/:id" element={<CaseDetail />} />
               <Route path="/sessions" element={<SessionsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/session-summary" element={<ParentSessionSummary />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/migration" element={<MigrationPage />} />
               <Route path="*" element={<NotFound />} />
