@@ -58,7 +58,7 @@ export function AppSidebar() {
       {/* Footer */}
       <div className="border-t border-sidebar-border p-4">
         <div className="rounded-lg bg-sidebar-accent/50 p-3">
-          <p className="text-xs font-medium text-sidebar-foreground">해오름 발달센터</p>
+          <p className="text-xs font-medium text-sidebar-foreground">아이랑 ABA 행동발달연구소</p>
           <p className="text-xs text-sidebar-muted">데모 버전 v1.0</p>
         </div>
       </div>
