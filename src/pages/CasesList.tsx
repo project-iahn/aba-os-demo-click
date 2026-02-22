@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, TrendingUp, TrendingDown, Minus, Search, ArrowUpDown, FileCheck, FileX, ChevronLeft, ChevronRight, Calendar, Clock } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Minus, Search, ArrowUpDown, FileCheck, FileX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SessionScheduler } from '@/components/SessionScheduler';
 import type { Child } from '@/data/mockData';
 
 type SortField = 'lastSession' | 'successRate' | 'name';
@@ -37,18 +37,6 @@ type SortDirection = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 5;
 
-// Mock schedule data
-const mockSchedule = [
-  { id: 's1', childName: '김하늘', therapist: '김민지', time: '09:00', duration: 40, day: '월' },
-  { id: 's2', childName: '이서준', therapist: '이준혁', time: '10:00', duration: 40, day: '월' },
-  { id: 's3', childName: '박지우', therapist: '박서연', time: '11:00', duration: 40, day: '월' },
-  { id: 's4', childName: '김하늘', therapist: '김민지', time: '09:00', duration: 40, day: '수' },
-  { id: 's5', childName: '이서준', therapist: '이준혁', time: '14:00', duration: 40, day: '수' },
-  { id: 's6', childName: '박지우', therapist: '박서연', time: '10:00', duration: 40, day: '금' },
-  { id: 's7', childName: '김하늘', therapist: '김민지', time: '14:00', duration: 40, day: '금' },
-];
-
-const WEEKDAYS = ['월', '화', '수', '목', '금'];
 
 export default function CasesList() {
   const { children, therapists, sessions, reports, addChild, role } = useApp();
@@ -450,47 +438,8 @@ export default function CasesList() {
         </div>
       )}
 
-      {/* Weekly Scheduler */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            주간 스케줄
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-5 gap-3">
-            {WEEKDAYS.map(day => {
-              const daySchedules = mockSchedule.filter(s => s.day === day);
-              return (
-                <div key={day} className="space-y-2">
-                  <div className="text-center">
-                    <Badge variant="secondary" className="text-xs font-semibold">{day}</Badge>
-                  </div>
-                  {daySchedules.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border/50 p-3 text-center">
-                      <p className="text-xs text-muted-foreground">일정 없음</p>
-                    </div>
-                  ) : (
-                    daySchedules.map(schedule => (
-                      <div key={schedule.id} className="rounded-lg border border-border/50 bg-muted/30 p-2.5 space-y-1 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs font-medium">{schedule.time}</span>
-                          <span className="text-xs text-muted-foreground">({schedule.duration}분)</span>
-                        </div>
-                        <p className="text-sm font-medium text-foreground">{schedule.childName}</p>
-                        <p className="text-xs text-muted-foreground">{schedule.therapist}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-xs text-muted-foreground mt-3 text-center">* 데모용 주간 스케줄입니다</p>
-        </CardContent>
-      </Card>
+      {/* Session Scheduler */}
+      <SessionScheduler />
     </div>
   );
 }
