@@ -515,10 +515,6 @@ ${goalStats.map((stat, i) => `${i + 1}. ${stat.goal.title} (${stat.goal.category
                         <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>취소</Button>
                       </>
                     )}
-                    <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowExportDialog(true)}>
-                      <FileDown className="h-4 w-4" />
-                      내보내기
-                    </Button>
                   </div>
                 </div>
               </CardHeader>
