@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { useApp } from '@/context/AppContext';
 import {
   addDays, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth,
-  format, isSameDay, isSameMonth, eachDayOfInterval, getDay, isToday,
+  format, isSameDay, isSameMonth, eachDayOfInterval, eachMonthOfInterval,
+  getDay, isToday, startOfYear, endOfYear, isSameYear,
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-type ViewMode = 'month' | 'week';
+type ViewMode = 'year' | 'month' | 'week';
 
 export function SessionScheduler() {
   const { sessions, children, therapists, goals } = useApp();
@@ -50,19 +51,37 @@ export function SessionScheduler() {
     return eachDayOfInterval({ start, end });
   }, [currentDate]);
 
+  // Year view months
+  const yearMonths = useMemo(() => {
+    const start = startOfYear(currentDate);
+    const end = endOfYear(currentDate);
+    return eachMonthOfInterval({ start, end });
+  }, [currentDate]);
+
+  const getSessionsForMonth = (month: Date) =>
+    sessions.filter(s => {
+      const d = new Date(s.date);
+      return d.getMonth() === month.getMonth() && d.getFullYear() === month.getFullYear();
+    });
+
   const displayDays = viewMode === 'month' ? monthDays : weekDays;
 
   const navigate_period = (dir: 1 | -1) => {
-    if (viewMode === 'month') {
+    if (viewMode === 'year') {
+      setCurrentDate(prev => new Date(prev.getFullYear() + dir, 0, 1));
+    } else if (viewMode === 'month') {
       setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + dir, 1));
     } else {
       setCurrentDate(prev => addDays(prev, dir * 7));
     }
     setSelectedDate(null);
+    setSelectedMonth(null);
   };
 
   // Selected date sessions detail
+  const [selectedMonth, setSelectedMonth] = useState<Date | null>(null);
   const selectedSessions = selectedDate ? getSessionsForDate(selectedDate) : [];
+  const selectedMonthSessions = selectedMonth ? getSessionsForMonth(selectedMonth) : [];
 
   const WEEKDAY_LABELS = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -76,24 +95,18 @@ export function SessionScheduler() {
           </CardTitle>
           <div className="flex items-center gap-2">
             <div className="flex rounded-lg bg-muted p-0.5">
-              <button
-                onClick={() => { setViewMode('month'); setSelectedDate(null); }}
-                className={cn(
-                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
-                  viewMode === 'month' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                월
-              </button>
-              <button
-                onClick={() => { setViewMode('week'); setSelectedDate(null); }}
-                className={cn(
-                  'rounded-md px-3 py-1 text-xs font-medium transition-colors',
-                  viewMode === 'week' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                주
-              </button>
+              {(['year', 'month', 'week'] as ViewMode[]).map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => { setViewMode(mode); setSelectedDate(null); setSelectedMonth(null); }}
+                  className={cn(
+                    'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                    viewMode === mode ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {{ year: '연', month: '월', week: '주' }[mode]}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -102,7 +115,9 @@ export function SessionScheduler() {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <p className="text-sm font-semibold">
-            {viewMode === 'month'
+            {viewMode === 'year'
+              ? format(currentDate, 'yyyy년', { locale: ko })
+              : viewMode === 'month'
               ? format(currentDate, 'yyyy년 M월', { locale: ko })
               : `${format(weekDays[0], 'M/d', { locale: ko })} ~ ${format(weekDays[6], 'M/d', { locale: ko })}`
             }
@@ -113,7 +128,81 @@ export function SessionScheduler() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Calendar Grid */}
+        {/* Year View */}
+        {viewMode === 'year' && (
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            {yearMonths.map((month, i) => {
+              const monthSessions = getSessionsForMonth(month);
+              const isSelected = selectedMonth && isSameMonth(month, selectedMonth);
+              const isCurrent = isSameMonth(month, new Date());
+              return (
+                <button
+                  key={i}
+                  onClick={() => { setSelectedMonth(isSelected ? null : month); setSelectedDate(null); }}
+                  className={cn(
+                    'rounded-lg border p-3 text-center transition-colors',
+                    isSelected ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border/50 hover:bg-muted/50',
+                  )}
+                >
+                  <p className={cn('text-sm font-semibold', isCurrent && 'text-primary')}>{format(month, 'M월')}</p>
+                  <p className="text-lg font-bold mt-1">{monthSessions.length}</p>
+                  <p className="text-[10px] text-muted-foreground">세션</p>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Year view - selected month detail */}
+        {viewMode === 'year' && selectedMonth && (
+          <div className="space-y-3 border-t border-border pt-4">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              {format(selectedMonth, 'yyyy년 M월', { locale: ko })}
+              <Badge variant="secondary" className="text-xs">{selectedMonthSessions.length}세션</Badge>
+            </h3>
+            {selectedMonthSessions.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">이 달에 기록된 세션이 없습니다</p>
+            ) : (
+              <div className="space-y-2">
+                {[...selectedMonthSessions]
+                  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                  .map(session => {
+                    const child = children.find(c => c.id === session.childId);
+                    const therapist = therapists.find(t => t.id === session.therapistId);
+                    const totalTrials = session.trials.reduce((a, t) => a + t.trials, 0);
+                    const totalSuccesses = session.trials.reduce((a, t) => a + t.successes, 0);
+                    const avgRate = totalTrials > 0 ? Math.round((totalSuccesses / totalTrials) * 100) : 0;
+                    return (
+                      <div
+                        key={session.id}
+                        className="flex items-center justify-between rounded-lg border border-border/50 p-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/cases/${session.childId}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                            {child?.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{child?.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(session.date), 'M/d (EEE)', { locale: ko })} · {therapist?.name} · {session.duration}분
+                            </p>
+                          </div>
+                        </div>
+                        <Badge className={cn('text-xs', avgRate >= 70 ? 'bg-success/10 text-success border-0' : avgRate >= 50 ? 'bg-warning/10 text-warning border-0' : 'bg-destructive/10 text-destructive border-0')}>
+                          {avgRate}%
+                        </Badge>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Month/Week Calendar Grid */}
+        {viewMode !== 'year' && (
         <div>
           {/* Weekday headers */}
           <div className="grid grid-cols-7 mb-1">
@@ -181,6 +270,7 @@ export function SessionScheduler() {
             })}
           </div>
         </div>
+        )}
 
         {/* Selected Date Detail */}
         {selectedDate && (
