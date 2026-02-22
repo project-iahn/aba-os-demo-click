@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Activity, TrendingUp, Target, BarChart3, Calendar } from 'lucide-react';
+import { Activity, TrendingUp, Target, BarChart3, Calendar, User } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -84,6 +84,33 @@ export default function ParentSessionSummary() {
 
   return (
     <div className="animate-fade-in space-y-6">
+      {/* 보호자 인사 및 아동 정보 */}
+      {myChildren.length > 0 && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <User className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-foreground">
+                  {myChildren.map(c => c.name).join(', ')} 보호자님
+                </h2>
+                <div className="mt-1 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                  {myChildren.map(c => (
+                    <span key={c.id} className="flex items-center gap-1">
+                      <Badge variant="secondary" className="text-xs font-normal">{c.age}세</Badge>
+                      {c.diagnosis && <span>· {c.diagnosis}</span>}
+                      {c.concern && <span>· {c.concern}</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold text-foreground">세션 요약</h1>
         <p className="text-muted-foreground">자녀의 치료 세션 현황과 성과를 확인하세요</p>
