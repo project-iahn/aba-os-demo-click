@@ -4,7 +4,7 @@ import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { StepGuide } from '@/components/StepGuide';
 import { DataSyncHint } from '@/components/DataSyncHint';
 
@@ -137,7 +137,7 @@ export default function Dashboard() {
       </div>
 
       {/* Step Guide - Show for admin and therapist */}
-      {role !== 'parent' && <StepGuide />}
+      <StepGuide />
 
       {/* Migration Banner for Admins */}
       {role === 'admin' && (
@@ -291,9 +291,7 @@ export default function Dashboard() {
           {sessions.length === 0 ? (
             <div className="flex h-32 flex-col items-center justify-center gap-2">
               <p className="text-sm text-muted-foreground">아직 기록된 세션이 없습니다</p>
-              {role !== 'parent' && (
-                <p className="text-xs text-muted-foreground">케이스를 선택하고 세션을 기록해보세요</p>
-              )}
+              <p className="text-xs text-muted-foreground">케이스를 선택하고 세션을 기록해보세요</p>
             </div>
           ) : (
             <div className="space-y-3">

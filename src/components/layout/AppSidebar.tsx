@@ -1,12 +1,11 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Activity, Upload } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Settings, Activity, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/context/AppContext';
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: '대시보드', roles: ['admin', 'therapist', 'parent'] },
+  { to: '/dashboard', icon: LayoutDashboard, label: '대시보드', roles: ['admin'] },
   { to: '/cases', icon: Users, label: '케이스 (아동)', roles: ['admin', 'therapist', 'parent'] },
-  { to: '/sessions', icon: Calendar, label: '치료 세션', roles: ['admin', 'therapist', 'parent'] },
   { to: '/reports', icon: FileText, label: '진행 리포트', roles: ['admin', 'therapist', 'parent'] },
   { to: '/migration', icon: Upload, label: '데이터 마이그레이션', roles: ['admin'] },
   { to: '/settings', icon: Settings, label: '설정', roles: ['admin', 'therapist'] },
@@ -35,10 +34,7 @@ export function AppSidebar() {
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           {visibleNavItems.map((item) => {
-            const isActive =
-              item.to === '/'
-                ? location.pathname === '/'
-                : location.pathname.startsWith(item.to);
+            const isActive = location.pathname.startsWith(item.to);
 
             return (
               <li key={item.to}>

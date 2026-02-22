@@ -13,6 +13,7 @@ import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import MigrationPage from "./pages/MigrationPage";
 import NotFound from "./pages/NotFound";
+import { RoleRedirect } from "./components/RoleRedirect";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,8 @@ const App = () => (
         <BrowserRouter>
           <AppLayout>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<RoleRedirect />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/cases" element={<CasesList />} />
               <Route path="/cases/:id" element={<CaseDetail />} />
               <Route path="/sessions" element={<SessionsPage />} />
