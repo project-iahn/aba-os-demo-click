@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +39,8 @@ interface Center {
 }
 
 export default function AuthPage() {
+  const { session, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>('mode');
   const [selectedRole, setSelectedRole] = useState<SelectedRole>('therapist');
   const [email, setEmail] = useState('');
@@ -44,6 +48,13 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [centers, setCenters] = useState<Center[]>([]);
   const { toast } = useToast();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (session && !authLoading) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [session, authLoading, navigate]);
 
   const [centerData, setCenterData] = useState<CenterData>({
     name: '', address: '', representativeName: '', phone: '', email: '', businessNumber: '', description: '',
