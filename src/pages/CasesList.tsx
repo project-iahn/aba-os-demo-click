@@ -39,7 +39,7 @@ const ITEMS_PER_PAGE = 5;
 
 
 export default function CasesList() {
-  const { children, therapists, sessions, reports, addChild, role } = useApp();
+  const { children, therapists, sessions, reports, addChild, role, currentTherapistId } = useApp();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -72,7 +72,12 @@ export default function CasesList() {
   }, [children, sessions, reports]);
 
   const filteredAndSortedChildren = useMemo(() => {
-    let filtered = children.filter(
+    // 치료사는 본인 담당 케이스만 표시
+    let baseChildren = role === 'therapist' 
+      ? children.filter(c => c.therapistId === currentTherapistId)
+      : children;
+
+    let filtered = baseChildren.filter(
       (c) =>
         c.name.includes(searchQuery) ||
         c.concern.includes(searchQuery) ||
@@ -100,7 +105,7 @@ export default function CasesList() {
     });
     
     return filtered;
-  }, [children, searchQuery, sortField, sortDirection, childStats]);
+  }, [children, searchQuery, sortField, sortDirection, childStats, role, currentTherapistId]);
 
   // Pagination
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedChildren.length / ITEMS_PER_PAGE));

@@ -17,6 +17,7 @@ import {
 
 interface AppState {
   role: Role;
+  currentTherapistId: string;
   children: Child[];
   goals: Goal[];
   sessions: Session[];
@@ -49,6 +50,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const getInitialState = (): AppState => ({
   role: 'admin',
+  currentTherapistId: 'th1',
   children: [...initialChildren],
   goals: [...initialGoals],
   sessions: [...initialSessions],
