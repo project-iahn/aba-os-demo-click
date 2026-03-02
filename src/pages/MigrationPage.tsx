@@ -269,6 +269,7 @@ export default function MigrationPage() {
           date: row.session_date,
           duration: 50,
           notes: row.session_note || '',
+          trialRecords: [],
           trials: [],
           createdAt: new Date().toISOString(),
         };
