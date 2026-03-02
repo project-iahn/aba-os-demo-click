@@ -56,6 +56,77 @@ export type Database = {
         }
         Relationships: []
       }
+      children: {
+        Row: {
+          age: number | null
+          birth_date: string | null
+          center_id: string | null
+          concern: string | null
+          created_at: string
+          diagnosis: string | null
+          estimated_dev_age: number | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          guardian_relation: string | null
+          id: string
+          last_session_date: string | null
+          name: string
+          notes: string | null
+          start_date: string | null
+          status: string
+          therapist_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          birth_date?: string | null
+          center_id?: string | null
+          concern?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          estimated_dev_age?: number | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          guardian_relation?: string | null
+          id?: string
+          last_session_date?: string | null
+          name: string
+          notes?: string | null
+          start_date?: string | null
+          status?: string
+          therapist_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          birth_date?: string | null
+          center_id?: string | null
+          concern?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          estimated_dev_age?: number | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          guardian_relation?: string | null
+          id?: string
+          last_session_date?: string | null
+          name?: string
+          notes?: string | null
+          start_date?: string | null
+          status?: string
+          therapist_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           center_id: string | null
@@ -99,6 +170,201 @@ export type Database = {
             columns: ["center_id"]
             isOneToOne: false
             referencedRelation: "centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programs: {
+        Row: {
+          category: string
+          child_id: string
+          created_at: string
+          description: string | null
+          id: string
+          status: string
+          target_criteria: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          child_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          target_criteria?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          child_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          target_criteria?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programs_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          child_id: string
+          content: string | null
+          created_at: string
+          created_by_user_id: string
+          id: string
+          included_program_ids: string[] | null
+          period: string | null
+          period_end: string | null
+          period_start: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          child_id: string
+          content?: string | null
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          included_program_ids?: string[] | null
+          period?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          child_id?: string
+          content?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          included_program_ids?: string[] | null
+          period?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          child_id: string
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          session_date: string
+          therapist_user_id: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          session_date: string
+          therapist_user_id: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          session_date?: string
+          therapist_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trials: {
+        Row: {
+          created_at: string
+          id: string
+          latency_seconds: number | null
+          notes: string | null
+          problem_behavior: boolean
+          program_id: string
+          prompt_level: number
+          response: string | null
+          result: string
+          session_id: string
+          stimulus: string | null
+          trial_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latency_seconds?: number | null
+          notes?: string | null
+          problem_behavior?: boolean
+          program_id: string
+          prompt_level?: number
+          response?: string | null
+          result?: string
+          session_id: string
+          stimulus?: string | null
+          trial_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latency_seconds?: number | null
+          notes?: string | null
+          problem_behavior?: boolean
+          program_id?: string
+          prompt_level?: number
+          response?: string | null
+          result?: string
+          session_id?: string
+          stimulus?: string | null
+          trial_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trials_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trials_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
             referencedColumns: ["id"]
           },
         ]

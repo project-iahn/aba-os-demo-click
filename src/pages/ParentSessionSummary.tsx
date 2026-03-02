@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { TrendingUp, TrendingDown, Minus, User, BookOpen, Sparkles, Calendar, Star, Zap, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, User, BookOpen, Sparkles, Calendar, Star, Zap, Target, BarChart3 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { getMasteredStimuli, getStimulusMastery, type Trial } from '@/data/mockData';
 
-// Skill domain mapping from goal categories
 const SKILL_DOMAIN_MAP: Record<string, { domain: string; icon: string }> = {
   '의사소통': { domain: '표현 언어', icon: '🗣️' },
   '표현언어': { domain: '표현 언어', icon: '🗣️' },
@@ -18,20 +18,6 @@ const SKILL_DOMAIN_MAP: Record<string, { domain: string; icon: string }> = {
   '자조기술': { domain: '일상생활 자립', icon: '🏠' },
 };
 
-// Example achievements per goal
-const EXAMPLE_ACHIEVEMENTS: Record<string, string[]> = {
-  'g1': ['과자 줘', '놀이 하고 싶어', '물 주세요'],
-  'g2': ['대화 중 눈맞춤 3초 유지'],
-  'g3': ['앉아', '일어나', '공 줘', '이리 와'],
-  'g10': ['사과', '물', '바나나', '자동차'],
-  'g11': ['앉아', '일어나', '손 씻어'],
-  'g12': ['보드게임 차례 기다리기'],
-  'g13': ['기쁨', '슬픔', '화남'],
-  'g14': ['사과', '자동차', '강아지', '공', '물'],
-  'g15': ['몸짓으로 "줘" 표현', '"더" 요구하기'],
-};
-
-// Forecast milestones per domain
 const DOMAIN_MILESTONES: Record<string, { threshold: number; label: string }[]> = {
   '표현 언어': [
     { threshold: 80, label: '2단어 조합 요청 가능' },
@@ -62,16 +48,14 @@ interface SkillDomainData {
   trend: 'up' | 'down' | 'stable';
   chartData: { date: string; 달성률: number }[];
   goalTitles: string[];
-  examples: string[];
+  masteredStimuli: string[];
+  stimulusMastery: { stimulus: string; rate: number; total: number }[];
   independenceLabel: string;
-  // Velocity
-  velocityPerMonth: number | null; // percentage points per month
+  velocityPerMonth: number | null;
   velocityLabel: string;
   velocityComparison: string;
-  // Forecast
   forecast: { label: string; monthsAway: number } | null;
-  // Period growth
-  periodGrowth: number | null; // total growth over observed period
+  periodGrowth: number | null;
   periodMonths: number;
 }
 
@@ -82,6 +66,11 @@ export default function ParentSessionSummary() {
   const myChildren = children.filter(c => PARENT_CHILD_IDS.includes(c.id));
   const mySessions = sessions.filter(s => PARENT_CHILD_IDS.includes(s.childId));
   const myGoals = goals.filter(g => PARENT_CHILD_IDS.includes(g.childId) && g.status === 'active');
+
+  // Collect all trial records across sessions
+  const allTrialRecords: Trial[] = useMemo(() => {
+    return mySessions.flatMap(s => s.trialRecords || []);
+  }, [mySessions]);
 
   const skillDomains = useMemo((): SkillDomainData[] => {
     const domainMap = new Map<string, { icon: string; goalIds: string[]; goalTitles: string[] }>();
@@ -112,7 +101,7 @@ export default function ParentSessionSummary() {
       const olderRate = older.length > 0 ? older.reduce((a, t) => a + t.successes, 0) / older.reduce((a, t) => a + t.trials, 0) : 0;
       const trend: 'up' | 'down' | 'stable' = older.length === 0 ? 'stable' : recentRate > olderRate + 0.05 ? 'up' : recentRate < olderRate - 0.05 ? 'down' : 'stable';
 
-      // Session-level time series for velocity calculation
+      // Session time series for velocity
       const sessionRates = relevantSessions.map(s => {
         const trials = s.trials.filter(t => goalIds.includes(t.goalId));
         const t = trials.reduce((a, x) => a + x.trials, 0);
@@ -120,7 +109,6 @@ export default function ParentSessionSummary() {
         return { date: new Date(s.date), rate: t > 0 ? (su / t) * 100 : 0 };
       });
 
-      // Velocity: rate change per month
       let velocityPerMonth: number | null = null;
       let periodGrowth: number | null = null;
       let periodMonths = 0;
@@ -129,44 +117,28 @@ export default function ParentSessionSummary() {
         const first = sessionRates[0];
         const last = sessionRates[sessionRates.length - 1];
         const daysDiff = (last.date.getTime() - first.date.getTime()) / (1000 * 60 * 60 * 24);
-        periodMonths = Math.max(daysDiff / 30, 0.5); // at least half a month
+        periodMonths = Math.max(daysDiff / 30, 0.5);
         periodGrowth = Math.round(last.rate - first.rate);
         velocityPerMonth = Math.round((last.rate - first.rate) / periodMonths);
       }
 
-      // Velocity interpretation
       let velocityLabel = '';
       let velocityComparison = '';
       if (velocityPerMonth !== null) {
-        if (velocityPerMonth > 10) {
-          velocityLabel = '빠른 성장';
-          velocityComparison = '또래 평균 성장 속도보다 빠른 편입니다';
-        } else if (velocityPerMonth > 5) {
-          velocityLabel = '꾸준한 성장';
-          velocityComparison = '안정적인 속도로 발전하고 있습니다';
-        } else if (velocityPerMonth > 0) {
-          velocityLabel = '완만한 성장';
-          velocityComparison = '천천히 하지만 꾸준히 성장하고 있습니다';
-        } else if (velocityPerMonth === 0) {
-          velocityLabel = '유지 중';
-          velocityComparison = '현재 수준을 유지하고 있습니다';
-        } else {
-          velocityLabel = '관찰 필요';
-          velocityComparison = '치료사와 상담을 권장합니다';
-        }
+        if (velocityPerMonth > 10) { velocityLabel = '빠른 성장'; velocityComparison = '또래 평균 성장 속도보다 빠른 편입니다'; }
+        else if (velocityPerMonth > 5) { velocityLabel = '꾸준한 성장'; velocityComparison = '안정적인 속도로 발전하고 있습니다'; }
+        else if (velocityPerMonth > 0) { velocityLabel = '완만한 성장'; velocityComparison = '천천히 하지만 꾸준히 성장하고 있습니다'; }
+        else if (velocityPerMonth === 0) { velocityLabel = '유지 중'; velocityComparison = '현재 수준을 유지하고 있습니다'; }
+        else { velocityLabel = '관찰 필요'; velocityComparison = '치료사와 상담을 권장합니다'; }
       }
 
-      // Development forecast
       let forecast: { label: string; monthsAway: number } | null = null;
       if (velocityPerMonth !== null && velocityPerMonth > 0) {
         const milestones = DOMAIN_MILESTONES[domain] || [];
         const nextMilestone = milestones.find(m => m.threshold > rate);
         if (nextMilestone) {
-          const gap = nextMilestone.threshold - rate;
-          const monthsAway = Math.ceil(gap / velocityPerMonth);
-          if (monthsAway <= 12) {
-            forecast = { label: nextMilestone.label, monthsAway };
-          }
+          const monthsAway = Math.ceil((nextMilestone.threshold - rate) / velocityPerMonth);
+          if (monthsAway <= 12) forecast = { label: nextMilestone.label, monthsAway };
         }
       }
 
@@ -177,10 +149,7 @@ export default function ParentSessionSummary() {
         if (domainTrials.length === 0) return;
         const monthKey = new Date(s.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
         const existing = monthlyData.get(monthKey) || { trials: 0, successes: 0 };
-        domainTrials.forEach(t => {
-          existing.trials += t.trials;
-          existing.successes += t.successes;
-        });
+        domainTrials.forEach(t => { existing.trials += t.trials; existing.successes += t.successes; });
         monthlyData.set(monthKey, existing);
       });
       const chartData = Array.from(monthlyData.entries()).map(([date, d]) => ({
@@ -188,20 +157,26 @@ export default function ParentSessionSummary() {
         달성률: d.trials > 0 ? Math.round((d.successes / d.trials) * 100) : 0,
       }));
 
-      const examples = goalIds.flatMap(gid => EXAMPLE_ACHIEVEMENTS[gid] || []);
+      // Trial-level: mastered stimuli and stimulus mastery breakdown
+      const domainTrialRecords = allTrialRecords.filter(t => goalIds.includes(t.programId));
+      const masteredStimuli = goalIds.flatMap(gid => getMasteredStimuli(allTrialRecords, gid));
+      const stimulusMastery = goalIds.flatMap(gid => getStimulusMastery(allTrialRecords, gid)).slice(0, 8);
 
+      // Independence level
       const avgPrompt = allTrials.length > 0
         ? allTrials.reduce((a, t) => a + t.promptLevel, 0) / allTrials.length
         : 3;
       const independenceLabel = avgPrompt <= 0.5 ? '혼자서 해요' : avgPrompt <= 1.5 ? '조금만 도와주면 해요' : avgPrompt <= 2.5 ? '도움이 필요해요' : '많이 도와줘야 해요';
 
       return {
-        domain, icon, rate, trend, chartData, goalTitles, examples, independenceLabel,
+        domain, icon, rate, trend, chartData, goalTitles,
+        masteredStimuli, stimulusMastery,
+        independenceLabel,
         velocityPerMonth, velocityLabel, velocityComparison,
         forecast, periodGrowth, periodMonths,
       };
     });
-  }, [mySessions, myGoals, myChildren]);
+  }, [mySessions, myGoals, myChildren, allTrialRecords]);
 
   const therapySummary = useMemo(() => {
     const totalSessions = mySessions.length;
@@ -211,13 +186,13 @@ export default function ParentSessionSummary() {
     const overallRate = totalTrialCount > 0 ? Math.round((totalSuccesses / totalTrialCount) * 100) : 0;
     const improvingDomains = skillDomains.filter(d => d.trend === 'up').length;
     const lastSession = [...mySessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-    // Overall velocity
     const avgVelocity = skillDomains.filter(d => d.velocityPerMonth !== null).length > 0
       ? Math.round(skillDomains.filter(d => d.velocityPerMonth !== null).reduce((a, d) => a + (d.velocityPerMonth || 0), 0) / skillDomains.filter(d => d.velocityPerMonth !== null).length)
       : null;
+    const totalTrialRecords = allTrialRecords.length;
 
-    return { totalSessions, overallRate, improvingDomains, lastSessionDate: lastSession?.date, avgVelocity };
-  }, [mySessions, skillDomains]);
+    return { totalSessions, overallRate, improvingDomains, lastSessionDate: lastSession?.date, avgVelocity, totalTrialRecords };
+  }, [mySessions, skillDomains, allTrialRecords]);
 
   const child = myChildren[0];
 
@@ -244,7 +219,7 @@ export default function ParentSessionSummary() {
         </Card>
       )}
 
-      {/* Therapy summary with velocity */}
+      {/* Therapy summary */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -319,7 +294,7 @@ export default function ParentSessionSummary() {
 
             <Progress value={sd.rate} className="h-2.5" />
 
-            {/* Velocity & Growth section */}
+            {/* Velocity & Growth */}
             {sd.velocityPerMonth !== null && (
               <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-2">
                 <div className="flex items-center justify-between">
@@ -327,14 +302,10 @@ export default function ParentSessionSummary() {
                     <Zap className={`h-4 w-4 ${sd.velocityPerMonth > 5 ? 'text-success' : sd.velocityPerMonth > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
                     <span className="text-sm font-medium text-foreground">성장 속도</span>
                   </div>
-                  <div className="text-right">
-                    <span className={`text-sm font-bold ${sd.velocityPerMonth > 0 ? 'text-success' : sd.velocityPerMonth < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                      월 {sd.velocityPerMonth > 0 ? '+' : ''}{sd.velocityPerMonth}%p
-                    </span>
-                  </div>
+                  <span className={`text-sm font-bold ${sd.velocityPerMonth > 0 ? 'text-success' : sd.velocityPerMonth < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    월 {sd.velocityPerMonth > 0 ? '+' : ''}{sd.velocityPerMonth}%p
+                  </span>
                 </div>
-
-                {/* Period growth */}
                 {sd.periodGrowth !== null && (
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>최근 {sd.periodMonths < 1 ? '2주' : `${Math.round(sd.periodMonths)}개월`} 변화</span>
@@ -343,8 +314,6 @@ export default function ParentSessionSummary() {
                     </span>
                   </div>
                 )}
-
-                {/* Velocity interpretation */}
                 <div className="flex items-center gap-1.5">
                   <Badge variant="secondary" className="text-xs font-normal">{sd.velocityLabel}</Badge>
                   <span className="text-xs text-muted-foreground">{sd.velocityComparison}</span>
@@ -386,17 +355,43 @@ export default function ParentSessionSummary() {
               </div>
             )}
 
-            {/* Example achievements */}
-            {sd.examples.length > 0 && (
-              <div className="rounded-lg bg-muted/50 p-3">
+            {/* Stimulus mastery (trial-level data, shown as "체감" info) */}
+            {sd.stimulusMastery.length > 0 && (
+              <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <BarChart3 className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-xs font-medium text-muted-foreground">세부 항목별 습득률</span>
+                </div>
+                <div className="space-y-1.5">
+                  {sd.stimulusMastery.slice(0, 6).map((sm, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-xs text-foreground w-20 truncate">{sm.stimulus}</span>
+                      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${sm.rate >= 80 ? 'bg-success' : sm.rate >= 50 ? 'bg-primary' : 'bg-warning'}`}
+                          style={{ width: `${sm.rate}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium w-10 text-right ${sm.rate >= 80 ? 'text-success' : sm.rate >= 50 ? 'text-foreground' : 'text-warning'}`}>
+                        {sm.rate}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mastered items */}
+            {sd.masteredStimuli.length > 0 && (
+              <div className="rounded-lg bg-success/5 border border-success/15 p-3">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Star className="h-3.5 w-3.5 text-warning" />
-                  <span className="text-xs font-medium text-muted-foreground">할 수 있게 된 것들</span>
+                  <Star className="h-3.5 w-3.5 text-success" />
+                  <span className="text-xs font-medium text-success">할 수 있게 된 것들</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {sd.examples.map((ex, i) => (
-                    <Badge key={i} variant="secondary" className="text-xs font-normal">
-                      {ex}
+                  {sd.masteredStimuli.map((stim, i) => (
+                    <Badge key={i} className="bg-success/10 text-success border-0 text-xs font-normal">
+                      {stim}
                     </Badge>
                   ))}
                 </div>
