@@ -223,6 +223,7 @@ export default function MigrationPage() {
           targetCriteria: '',
           createdAt: row.session_date,
           status: 'active',
+          objectiveType: 'STO',
         });
       }
 

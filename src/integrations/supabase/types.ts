@@ -180,33 +180,45 @@ export type Database = {
           child_id: string
           created_at: string
           description: string | null
+          domain: string | null
           id: string
+          objective_type: string
+          parent_program_id: string | null
           status: string
           target_criteria: string | null
           title: string
           updated_at: string
+          vbmapp_level: number | null
         }
         Insert: {
           category: string
           child_id: string
           created_at?: string
           description?: string | null
+          domain?: string | null
           id?: string
+          objective_type?: string
+          parent_program_id?: string | null
           status?: string
           target_criteria?: string | null
           title: string
           updated_at?: string
+          vbmapp_level?: number | null
         }
         Update: {
           category?: string
           child_id?: string
           created_at?: string
           description?: string | null
+          domain?: string | null
           id?: string
+          objective_type?: string
+          parent_program_id?: string | null
           status?: string
           target_criteria?: string | null
           title?: string
           updated_at?: string
+          vbmapp_level?: number | null
         }
         Relationships: [
           {
@@ -214,6 +226,13 @@ export type Database = {
             columns: ["child_id"]
             isOneToOne: false
             referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programs_parent_program_id_fkey"
+            columns: ["parent_program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]
