@@ -456,6 +456,23 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                               <p className="text-xs">{sto.targetCriteria}</p>
                             </div>
                           )}
+                          {lastSessionPerformance[sto.id] && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <div className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
+                                lastSessionPerformance[sto.id].rate >= 80 ? 'bg-success/10 text-success' :
+                                lastSessionPerformance[sto.id].rate >= 50 ? 'bg-warning/10 text-warning' :
+                                'bg-destructive/10 text-destructive'
+                              }`}>
+                                직전 {lastSessionPerformance[sto.id].rate}%
+                                <span className="font-normal opacity-70">
+                                  ({lastSessionPerformance[sto.id].successes}/{lastSessionPerformance[sto.id].trials})
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(lastSessionPerformance[sto.id].date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         {canCreate && (
                           <div className="flex items-center gap-1 mt-1">
