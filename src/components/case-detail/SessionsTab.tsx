@@ -426,27 +426,48 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
 
                       <CollapsibleContent>
                         <div className="border-t border-border/50 p-3 space-y-3">
-                          {/* Quick-action buttons for stimuli */}
+                          {/* Quick-action buttons for stimuli with inline results */}
                           <div>
-                            <p className="text-[10px] text-muted-foreground font-medium mb-2">자극을 선택하고 결과를 기록하세요</p>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                              {stimuli.map((stim) => (
-                                <div key={stim} className="flex items-center rounded-lg border border-border/50 overflow-hidden">
-                                  <span className="flex-1 text-xs px-2 py-1.5 truncate">{stim}</span>
-                                  <button
-                                    onClick={() => recordTrial(sto.id, stim, 'correct')}
-                                    className="h-full px-2.5 py-1.5 bg-success/10 text-success hover:bg-success/20 transition-colors border-l border-border/50 text-sm font-bold"
-                                  >
-                                    ✓
-                                  </button>
-                                  <button
-                                    onClick={() => recordTrial(sto.id, stim, 'incorrect')}
-                                    className="h-full px-2.5 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors border-l border-border/50 text-sm font-bold"
-                                  >
-                                    ✗
-                                  </button>
-                                </div>
-                              ))}
+                            <p className="text-[10px] text-muted-foreground font-medium mb-2">자극 옆 +/-/P 로 기록</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                              {stimuli.map((stim) => {
+                                const stimResults = completed.filter(t => t.stimulus === stim);
+                                return (
+                                  <div key={stim} className="flex items-center rounded-lg border border-border/50 overflow-hidden">
+                                    <span className="text-xs px-2 py-1.5 truncate min-w-0 w-20 shrink-0">{stim}</span>
+                                    {/* Inline recorded results */}
+                                    <div className="flex items-center gap-0.5 flex-1 px-1 min-w-0 overflow-x-auto">
+                                      {stimResults.map((t, i) => (
+                                        <span key={i} className={cn(
+                                          'text-[10px] font-bold shrink-0',
+                                          t.result === 'correct' ? 'text-success' :
+                                          t.result === 'no_response' ? 'text-warning' : 'text-destructive'
+                                        )}>
+                                          {t.result === 'correct' ? '+' : t.result === 'no_response' ? 'P' : '-'}
+                                        </span>
+                                      ))}
+                                    </div>
+                                    <button
+                                      onClick={() => recordTrial(sto.id, stim, 'correct')}
+                                      className="h-full px-2.5 py-1.5 bg-success/10 text-success hover:bg-success/20 transition-colors border-l border-border/50 text-sm font-bold"
+                                    >
+                                      +
+                                    </button>
+                                    <button
+                                      onClick={() => recordTrial(sto.id, stim, 'incorrect')}
+                                      className="h-full px-2.5 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors border-l border-border/50 text-sm font-bold"
+                                    >
+                                      -
+                                    </button>
+                                    <button
+                                      onClick={() => recordTrial(sto.id, stim, 'no_response')}
+                                      className="h-full px-2.5 py-1.5 bg-warning/10 text-warning hover:bg-warning/20 transition-colors border-l border-border/50 text-sm font-bold"
+                                    >
+                                      P
+                                    </button>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
 
@@ -478,23 +499,6 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
                               <span className="text-[10px] text-muted-foreground">🎯 {sto.targetCriteria}</span>
                             )}
                           </div>
-
-                          {/* Recent trials log */}
-                          {completed.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {completed.map((t, i) => (
-                                <div key={i} className={cn(
-                                  'rounded px-1.5 py-0.5 text-[10px] flex items-center gap-1',
-                                  t.result === 'correct' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
-                                )}>
-                                  {t.stimulus}
-                                  {t.result === 'correct' ? '✓' : '✗'}
-                                  {t.promptLevel > 0 && <span className="text-muted-foreground">P{t.promptLevel}</span>}
-                                  {t.problemBehavior && <AlertTriangle className="h-2.5 w-2.5" />}
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
