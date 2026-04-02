@@ -292,6 +292,73 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
             </div>
           </div>
         )}
+
+        {/* Recent session history */}
+        {sessions.length > 0 && (
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              최근 세션 기록
+            </h3>
+            <div className="space-y-2">
+              {[...sessions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(session => {
+                const totalT = session.trials.reduce((acc, t) => acc + t.trials, 0);
+                const totalS = session.trials.reduce((acc, t) => acc + t.successes, 0);
+                const sessionRate = totalT > 0 ? Math.round((totalS / totalT) * 100) : 0;
+                return (
+                  <Collapsible key={session.id}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center justify-between rounded-lg border border-border/50 p-2.5 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-medium">
+                            {new Date(session.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">{session.startTime || ''}</span>
+                          <span className="text-[11px] text-muted-foreground">{session.duration}분</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground">{totalT}회</span>
+                          <span className={cn(
+                            'text-xs font-bold',
+                            sessionRate >= 70 ? 'text-success' : sessionRate >= 50 ? 'text-warning' : 'text-destructive'
+                          )}>
+                            {sessionRate}%
+                          </span>
+                          <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="ml-4 mt-1 space-y-1 pb-1">
+                        {session.trials.map((trial, idx) => {
+                          const goal = goals.find(g => g.id === trial.goalId);
+                          const trialRate = trial.trials > 0 ? Math.round((trial.successes / trial.trials) * 100) : 0;
+                          return (
+                            <div key={idx} className="flex items-center justify-between rounded-md bg-muted/30 px-2.5 py-1.5">
+                              <span className="text-[11px] font-medium truncate">{goal?.title || trial.goalId}</span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[10px] text-muted-foreground">{trial.successes}/{trial.trials}</span>
+                                <span className={cn(
+                                  'text-[11px] font-bold',
+                                  trialRate >= 70 ? 'text-success' : trialRate >= 50 ? 'text-warning' : 'text-destructive'
+                                )}>
+                                  {trialRate}%
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {session.notes && (
+                          <p className="text-[10px] text-muted-foreground px-2.5 pt-1">📝 {session.notes}</p>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
