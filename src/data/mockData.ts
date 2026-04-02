@@ -22,6 +22,7 @@ export interface Child {
   trend: 'up' | 'down' | 'stable';
   notes: string;
   estimatedDevAge?: number;
+  scheduleDays?: string;  // e.g. "월·수 14:00"
 }
 
 // VB-MAPP developmental levels and domains
