@@ -277,7 +277,7 @@ export const initialChildren: Child[] = [
     guardianName: '이민수', guardianPhone: '010-3333-4444', guardianRelation: '아버지',
     status: 'active', startDate: '2024-10-15', therapistId: 'th2',
     lastSessionDate: '2025-01-02', trend: 'stable',
-    notes: '감각 조절 활동에 긍정적 반응', estimatedDevAge: 28,
+    notes: '감각 조절 활동에 긍정적 반응', estimatedDevAge: 28, scheduleDays: '화·목 14:30',
   },
   {
     id: 'c8', name: '윤서아', age: 5, birthDate: '2020-11-03',
