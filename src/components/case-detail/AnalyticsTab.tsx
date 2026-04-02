@@ -460,7 +460,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
     successRate: (
       <Card>
         <CardHeader>
-        <CardTitle className="text-base">목표별 성공률 추이</CardTitle>
+        <CardTitle className="text-base">{chartType === 'cumulative' ? '누적 성공률 추이' : '목표별 성공률 추이'}</CardTitle>
           {role === 'parent' && <p className="text-sm text-muted-foreground">그래프가 위로 올라갈수록 아이가 해당 활동을 더 잘 수행하고 있다는 뜻입니다</p>}
           <p className="text-xs text-muted-foreground">차트의 점을 클릭하면 해당 세션의 상세 결과를 확인할 수 있습니다</p>
           <div className="flex flex-wrap gap-2 pt-2">
