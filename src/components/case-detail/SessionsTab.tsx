@@ -369,6 +369,7 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
               const isExpanded = expandedProgram === sto.id;
               const stimuli = getStimuliForGoal(sto);
               const lastTrial = programTrials[programTrials.length - 1];
+              const prev = lastPerf[sto.id];
 
               return (
                 <Card key={sto.id} className={cn(
@@ -383,7 +384,19 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
                           <div className="flex items-center gap-2 min-w-0">
                             {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold truncate">{sto.title}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-semibold truncate">{sto.title}</p>
+                                {prev && (
+                                  <span className={cn(
+                                    'text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0',
+                                    prev.rate >= 80 ? 'bg-success/10 text-success' :
+                                    prev.rate >= 50 ? 'bg-warning/10 text-warning' :
+                                    'bg-destructive/10 text-destructive'
+                                  )}>
+                                    직전 {prev.rate}%
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-[11px] text-muted-foreground truncate">{sto.description}</p>
                             </div>
                           </div>
