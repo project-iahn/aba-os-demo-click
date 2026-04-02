@@ -60,7 +60,7 @@ interface AnalyticsTabProps {
 
 const COLORS = ['#0ea5e9', '#14b8a6', '#f59e0b', '#8b5cf6', '#ec4899', '#ef4444', '#22c55e', '#6366f1'];
 
-type ChartType = 'line' | 'bar' | 'area';
+type ChartType = 'line' | 'bar' | 'area' | 'cumulative';
 type DateRange = '7' | '30' | '90' | 'all' | 'custom';
 
 interface SortableSectionProps {
