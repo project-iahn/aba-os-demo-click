@@ -60,7 +60,7 @@ interface AnalyticsTabProps {
 
 const COLORS = ['#0ea5e9', '#14b8a6', '#f59e0b', '#8b5cf6', '#ec4899', '#ef4444', '#22c55e', '#6366f1'];
 
-type ChartType = 'line' | 'bar' | 'area';
+type ChartType = 'line' | 'bar' | 'area' | 'cumulative';
 type DateRange = '7' | '30' | '90' | 'all' | 'custom';
 
 interface SortableSectionProps {
@@ -213,6 +213,28 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         if (trials.length > 0) {
           const correct = trials.filter(t => t.result === 'correct').length;
           dp[goal.title] = Math.round((correct / trials.length) * 100);
+        }
+      });
+      return dp;
+    });
+  }, [filteredSessions, practicedSTOs]);
+
+  // Cumulative success rate data
+  const cumulativeData = useMemo(() => {
+    const sorted = [...filteredSessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const accum: Record<string, { correct: number; total: number }> = {};
+    return sorted.map((session) => {
+      const dp: Record<string, string | number> = {
+        date: new Date(session.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+        _sessionId: session.id as any,
+      };
+      practicedSTOs.forEach((goal) => {
+        const trials = session.trialRecords.filter(t => t.programId === goal.id);
+        if (!accum[goal.id]) accum[goal.id] = { correct: 0, total: 0 };
+        if (trials.length > 0) {
+          accum[goal.id].correct += trials.filter(t => t.result === 'correct').length;
+          accum[goal.id].total += trials.length;
+          dp[goal.title] = Math.round((accum[goal.id].correct / accum[goal.id].total) * 100);
         }
       });
       return dp;
@@ -414,6 +436,16 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         </AreaChart>
       );
     }
+    if (chartType === 'cumulative') {
+      return (
+        <AreaChart {...{ ...commonProps, data: cumulativeData }}>
+          {commonChildren}
+          {displayGoals.map((goal) => (
+            <Area key={goal.id} type="monotone" dataKey={goal.title} stroke={COLORS[practicedSTOs.findIndex(g => g.id === goal.id) % COLORS.length]} fill={COLORS[practicedSTOs.findIndex(g => g.id === goal.id) % COLORS.length]} fillOpacity={0.3} strokeWidth={2} />
+          ))}
+        </AreaChart>
+      );
+    }
     return (
       <LineChart {...commonProps}>
         {commonChildren}
@@ -428,7 +460,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
     successRate: (
       <Card>
         <CardHeader>
-        <CardTitle className="text-base">목표별 성공률 추이</CardTitle>
+        <CardTitle className="text-base">{chartType === 'cumulative' ? '누적 성공률 추이' : '목표별 성공률 추이'}</CardTitle>
           {role === 'parent' && <p className="text-sm text-muted-foreground">그래프가 위로 올라갈수록 아이가 해당 활동을 더 잘 수행하고 있다는 뜻입니다</p>}
           <p className="text-xs text-muted-foreground">차트의 점을 클릭하면 해당 세션의 상세 결과를 확인할 수 있습니다</p>
           <div className="flex flex-wrap gap-2 pt-2">
@@ -594,6 +626,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
               <SelectItem value="line">선 그래프</SelectItem>
               <SelectItem value="bar">막대 그래프</SelectItem>
               <SelectItem value="area">영역 그래프</SelectItem>
+              <SelectItem value="cumulative">누적 그래프</SelectItem>
             </SelectContent>
           </Select>
         </div>
