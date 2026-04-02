@@ -51,10 +51,9 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     if (!sessions.length) return perf;
     // Sort sessions by date desc
     const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
-    // For each STO, find the most recent session that has trials for it
     goals.filter(g => g.objectiveType === 'STO').forEach(sto => {
       for (const s of sorted) {
-        const trial = s.trials.find(t => t.programId === sto.id);
+        const trial = s.trials.find(t => t.goalId === sto.id);
         if (trial && trial.trials > 0) {
           perf[sto.id] = {
             rate: Math.round((trial.successes / trial.trials) * 100),
