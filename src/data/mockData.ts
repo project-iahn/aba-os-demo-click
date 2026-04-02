@@ -234,6 +234,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-09-01', therapistId: 'th1',
     lastSessionDate: '2025-01-03', trend: 'up',
     notes: '최근 눈맞춤 빈도 증가, 단어 사용량 향상', estimatedDevAge: 42,
+    scheduleDays: '월·수 14:00',
   },
   {
     id: 'c4', name: '최유진', age: 5, birthDate: '2020-06-10',
@@ -242,6 +243,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-11-01', therapistId: 'th1',
     lastSessionDate: '2025-01-04', trend: 'up',
     notes: '단어 모방 정확도 향상 중', estimatedDevAge: 40,
+    scheduleDays: '화·목 10:00',
   },
   {
     id: 'c5', name: '정민호', age: 6, birthDate: '2019-09-25',
@@ -250,6 +252,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-08-01', therapistId: 'th1',
     lastSessionDate: '2025-01-02', trend: 'stable',
     notes: '또래 상호작용 빈도 유지 중', estimatedDevAge: 52,
+    scheduleDays: '월·금 15:30',
   },
   {
     id: 'c6', name: '한소율', age: 4, birthDate: '2021-02-14',
@@ -258,6 +261,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-12-01', therapistId: 'th1',
     lastSessionDate: '2025-01-03', trend: 'up',
     notes: '의사소통 의도 표현 증가', estimatedDevAge: 30,
+    scheduleDays: '수·금 13:00',
   },
   {
     id: 'c7', name: '오태양', age: 3, birthDate: '2022-05-20',
