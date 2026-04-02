@@ -73,6 +73,28 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
     [goals]
   );
 
+  // Last session performance per STO
+  const lastPerf = useMemo(() => {
+    const perf: Record<string, { rate: number; trials: number; successes: number; date: string }> = {};
+    if (!sessions.length) return perf;
+    const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
+    activeSTOs.forEach(sto => {
+      for (const s of sorted) {
+        const trial = s.trials.find(t => t.goalId === sto.id);
+        if (trial && trial.trials > 0) {
+          perf[sto.id] = {
+            rate: Math.round((trial.successes / trial.trials) * 100),
+            trials: trial.trials,
+            successes: trial.successes,
+            date: s.date,
+          };
+          break;
+        }
+      }
+    });
+    return perf;
+  }, [sessions, activeSTOs]);
+
   // Group STOs by parent LTO
   const groupedByLTO = useMemo(() => {
     const ltos = goals.filter(g => g.objectiveType === 'LTO' && g.status === 'active');
