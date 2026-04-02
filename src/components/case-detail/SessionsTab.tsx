@@ -73,6 +73,28 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
     [goals]
   );
 
+  // Last session performance per STO
+  const lastPerf = useMemo(() => {
+    const perf: Record<string, { rate: number; trials: number; successes: number; date: string }> = {};
+    if (!sessions.length) return perf;
+    const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
+    activeSTOs.forEach(sto => {
+      for (const s of sorted) {
+        const trial = s.trials.find(t => t.goalId === sto.id);
+        if (trial && trial.trials > 0) {
+          perf[sto.id] = {
+            rate: Math.round((trial.successes / trial.trials) * 100),
+            trials: trial.trials,
+            successes: trial.successes,
+            date: s.date,
+          };
+          break;
+        }
+      }
+    });
+    return perf;
+  }, [sessions, activeSTOs]);
+
   // Group STOs by parent LTO
   const groupedByLTO = useMemo(() => {
     const ltos = goals.filter(g => g.objectiveType === 'LTO' && g.status === 'active');
@@ -217,7 +239,7 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
           <div className="text-center">
             <h2 className="text-lg font-bold text-foreground">세션 시작하기</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              활성 STO {activeSTOs.length}개 · 시행 버튼으로 실시간 기록
+              활성 목표 {activeSTOs.length}개 · 시행 버튼으로 실시간 기록
             </p>
           </div>
           {canCreate && activeSTOs.length > 0 && (
@@ -227,10 +249,49 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
             </Button>
           )}
           {activeSTOs.length === 0 && (
-            <p className="text-sm text-muted-foreground">활성화된 단기목표(STO)가 없습니다. 개요 탭에서 목표를 추가하세요.</p>
+            <p className="text-sm text-muted-foreground">활성화된 단기목표가 없습니다. 개요 탭에서 목표를 추가하세요.</p>
           )}
         </div>
 
+        {/* Last session performance summary */}
+        {Object.keys(lastPerf).length > 0 && (
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              직전 세션 수행 현황
+            </h3>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {activeSTOs.map(sto => {
+                const perf = lastPerf[sto.id];
+                if (!perf) return (
+                  <div key={sto.id} className="flex items-center justify-between rounded-lg border border-border/50 p-2.5">
+                    <span className="text-xs font-medium truncate">{sto.title}</span>
+                    <span className="text-[11px] text-muted-foreground">기록 없음</span>
+                  </div>
+                );
+                return (
+                  <div key={sto.id} className="flex items-center justify-between rounded-lg border border-border/50 p-2.5">
+                    <span className="text-xs font-medium truncate flex-1 mr-2">{sto.title}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={cn(
+                        'text-xs font-bold',
+                        perf.rate >= 80 ? 'text-success' : perf.rate >= 50 ? 'text-warning' : 'text-destructive'
+                      )}>
+                        {perf.rate}%
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        ({perf.successes}/{perf.trials})
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(perf.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -308,6 +369,7 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
               const isExpanded = expandedProgram === sto.id;
               const stimuli = getStimuliForGoal(sto);
               const lastTrial = programTrials[programTrials.length - 1];
+              const prev = lastPerf[sto.id];
 
               return (
                 <Card key={sto.id} className={cn(
@@ -322,7 +384,19 @@ export function SessionsTab({ childId, sessions, goals }: SessionsTabProps) {
                           <div className="flex items-center gap-2 min-w-0">
                             {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold truncate">{sto.title}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-semibold truncate">{sto.title}</p>
+                                {prev && (
+                                  <span className={cn(
+                                    'text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0',
+                                    prev.rate >= 80 ? 'bg-success/10 text-success' :
+                                    prev.rate >= 50 ? 'bg-warning/10 text-warning' :
+                                    'bg-destructive/10 text-destructive'
+                                  )}>
+                                    직전 {prev.rate}%
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-[11px] text-muted-foreground truncate">{sto.description}</p>
                             </div>
                           </div>
