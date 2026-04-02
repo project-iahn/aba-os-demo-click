@@ -301,7 +301,7 @@ export const initialChildren: Child[] = [
     guardianName: '박수현', guardianPhone: '010-5555-6666', guardianRelation: '어머니',
     status: 'active', startDate: '2024-06-01', therapistId: 'th3',
     lastSessionDate: '2024-12-28', trend: 'down',
-    notes: '최근 세션 참여도 저하, 전환 활동에서 어려움', estimatedDevAge: 54,
+    notes: '최근 세션 참여도 저하, 전환 활동에서 어려움', estimatedDevAge: 54, scheduleDays: '월·목 16:00',
   },
   {
     id: 'c10', name: '신예린', age: 5, birthDate: '2020-12-30',
