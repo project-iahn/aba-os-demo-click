@@ -616,6 +616,7 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
               <SelectItem value="line">선 그래프</SelectItem>
               <SelectItem value="bar">막대 그래프</SelectItem>
               <SelectItem value="area">영역 그래프</SelectItem>
+              <SelectItem value="cumulative">누적 그래프</SelectItem>
             </SelectContent>
           </Select>
         </div>
