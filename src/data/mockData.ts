@@ -408,7 +408,14 @@ export const initialGoals: Program[] = [
   { id: 'g11b', childId: 'c4', title: '몸짓으로 요구하기', description: '가리키기/손 내밀기로 원하는 것을 요구할 수 있다.', category: '맨드', targetCriteria: '5회 연속 자발적 표현', createdAt: '2024-11-15', status: 'active', vbmappLevel: 1, domain: 'mand', objectiveType: 'STO', parentProgramId: 'g11b-lto' },
   { id: 'g11c', childId: 'c4', title: '단어로 요구하기', description: '단어(줘, 더 등)를 사용하여 요구할 수 있다.', category: '맨드', targetCriteria: '3회 연속 자발적 단어 사용', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'mand', objectiveType: 'STO', parentProgramId: 'g11b-lto' },
 
-  // ═══════════════════════════════════════
+  // 최유진 (c4) - 완료된 목표
+  { id: 'g10c-lto', childId: 'c4', title: '모방(운동모방)', description: '치료사의 대근육/소근육 동작을 정확하게 모방할 수 있다.', category: '모방', targetCriteria: '', createdAt: '2024-11-01', status: 'mastered', vbmappLevel: 1, domain: 'imitation', objectiveType: 'LTO' },
+  { id: 'g10c', childId: 'c4', title: '손뼉치기 모방', description: '치료사가 손뼉을 치면 따라서 손뼉을 칠 수 있다.', category: '모방', targetCriteria: '10회 중 9회 정확 모방', createdAt: '2024-11-01', status: 'mastered', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g10c-lto' },
+  { id: 'g10d', childId: 'c4', title: '손 흔들기 모방', description: '치료사가 손을 흔들면 따라서 손을 흔들 수 있다.', category: '모방', targetCriteria: '10회 중 8회 정확 모방', createdAt: '2024-11-01', status: 'mastered', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g10c-lto' },
+
+  { id: 'g10e-lto', childId: 'c4', title: '시각적 수행(매칭)', description: '동일한 사물/그림을 짝지을 수 있다.', category: '시각적수행', targetCriteria: '', createdAt: '2024-11-01', status: 'mastered', vbmappLevel: 1, domain: 'vp_mts', objectiveType: 'LTO' },
+  { id: 'g10e', childId: 'c4', title: '같은 사물 매칭', description: '동일한 사물끼리 짝지을 수 있다 (컵-컵, 공-공).', category: '시각적수행', targetCriteria: '5쌍 연속 정확 매칭', createdAt: '2024-11-01', status: 'mastered', vbmappLevel: 1, domain: 'vp_mts', objectiveType: 'STO', parentProgramId: 'g10e-lto' },
+
   // 정민호 (c5) - Level 2
   // ═══════════════════════════════════════
 
