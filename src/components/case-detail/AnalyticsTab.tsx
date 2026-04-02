@@ -436,6 +436,16 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
         </AreaChart>
       );
     }
+    if (chartType === 'cumulative') {
+      return (
+        <AreaChart {...{ ...commonProps, data: cumulativeData }}>
+          {commonChildren}
+          {displayGoals.map((goal) => (
+            <Area key={goal.id} type="monotone" dataKey={goal.title} stroke={COLORS[practicedSTOs.findIndex(g => g.id === goal.id) % COLORS.length]} fill={COLORS[practicedSTOs.findIndex(g => g.id === goal.id) % COLORS.length]} fillOpacity={0.3} strokeWidth={2} />
+          ))}
+        </AreaChart>
+      );
+    }
     return (
       <LineChart {...commonProps}>
         {commonChildren}
