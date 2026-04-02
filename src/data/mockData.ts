@@ -22,6 +22,7 @@ export interface Child {
   trend: 'up' | 'down' | 'stable';
   notes: string;
   estimatedDevAge?: number;
+  scheduleDays?: string;  // e.g. "월·수 14:00"
 }
 
 // VB-MAPP developmental levels and domains
@@ -233,6 +234,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-09-01', therapistId: 'th1',
     lastSessionDate: '2025-01-03', trend: 'up',
     notes: '최근 눈맞춤 빈도 증가, 단어 사용량 향상', estimatedDevAge: 42,
+    scheduleDays: '월·수 14:00',
   },
   {
     id: 'c4', name: '최유진', age: 5, birthDate: '2020-06-10',
@@ -241,6 +243,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-11-01', therapistId: 'th1',
     lastSessionDate: '2025-01-04', trend: 'up',
     notes: '단어 모방 정확도 향상 중', estimatedDevAge: 40,
+    scheduleDays: '화·목 10:00',
   },
   {
     id: 'c5', name: '정민호', age: 6, birthDate: '2019-09-25',
@@ -249,6 +252,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-08-01', therapistId: 'th1',
     lastSessionDate: '2025-01-02', trend: 'stable',
     notes: '또래 상호작용 빈도 유지 중', estimatedDevAge: 52,
+    scheduleDays: '월·금 15:30',
   },
   {
     id: 'c6', name: '한소율', age: 4, birthDate: '2021-02-14',
@@ -257,6 +261,7 @@ export const initialChildren: Child[] = [
     status: 'active', startDate: '2024-12-01', therapistId: 'th1',
     lastSessionDate: '2025-01-03', trend: 'up',
     notes: '의사소통 의도 표현 증가', estimatedDevAge: 30,
+    scheduleDays: '수·금 13:00',
   },
   {
     id: 'c7', name: '오태양', age: 3, birthDate: '2022-05-20',
@@ -264,7 +269,7 @@ export const initialChildren: Child[] = [
     guardianName: '오지훈', guardianPhone: '010-7777-1111', guardianRelation: '아버지',
     status: 'pending', startDate: '2025-01-10', therapistId: 'th1',
     lastSessionDate: '', trend: 'stable',
-    notes: '초기 평가 예정', estimatedDevAge: 24,
+    notes: '초기 평가 예정', estimatedDevAge: 24, scheduleDays: '화 11:00',
   },
   {
     id: 'c2', name: '이서준', age: 4, birthDate: '2021-07-22',
@@ -272,7 +277,7 @@ export const initialChildren: Child[] = [
     guardianName: '이민수', guardianPhone: '010-3333-4444', guardianRelation: '아버지',
     status: 'active', startDate: '2024-10-15', therapistId: 'th2',
     lastSessionDate: '2025-01-02', trend: 'stable',
-    notes: '감각 조절 활동에 긍정적 반응', estimatedDevAge: 28,
+    notes: '감각 조절 활동에 긍정적 반응', estimatedDevAge: 28, scheduleDays: '화·목 14:30',
   },
   {
     id: 'c8', name: '윤서아', age: 5, birthDate: '2020-11-03',
@@ -280,7 +285,7 @@ export const initialChildren: Child[] = [
     guardianName: '윤재호', guardianPhone: '010-8888-1111', guardianRelation: '아버지',
     status: 'active', startDate: '2024-07-15', therapistId: 'th2',
     lastSessionDate: '2025-01-04', trend: 'up',
-    notes: '상징 놀이 빈도 증가', estimatedDevAge: 38,
+    notes: '상징 놀이 빈도 증가', estimatedDevAge: 38, scheduleDays: '월·수 10:30',
   },
   {
     id: 'c9', name: '강도윤', age: 7, birthDate: '2018-08-12',
@@ -288,7 +293,7 @@ export const initialChildren: Child[] = [
     guardianName: '강수진', guardianPhone: '010-9999-1111', guardianRelation: '어머니',
     status: 'inactive', startDate: '2024-03-01', therapistId: 'th2',
     lastSessionDate: '2024-11-30', trend: 'down',
-    notes: '치료 일시 중단 (가정 사정)', estimatedDevAge: 58,
+    notes: '치료 일시 중단 (가정 사정)', estimatedDevAge: 58, scheduleDays: '금 15:00',
   },
   {
     id: 'c3', name: '박지우', age: 6, birthDate: '2019-11-08',
@@ -296,7 +301,7 @@ export const initialChildren: Child[] = [
     guardianName: '박수현', guardianPhone: '010-5555-6666', guardianRelation: '어머니',
     status: 'active', startDate: '2024-06-01', therapistId: 'th3',
     lastSessionDate: '2024-12-28', trend: 'down',
-    notes: '최근 세션 참여도 저하, 전환 활동에서 어려움', estimatedDevAge: 54,
+    notes: '최근 세션 참여도 저하, 전환 활동에서 어려움', estimatedDevAge: 54, scheduleDays: '월·목 16:00',
   },
   {
     id: 'c10', name: '신예린', age: 5, birthDate: '2020-12-30',
@@ -304,7 +309,7 @@ export const initialChildren: Child[] = [
     guardianName: '신동혁', guardianPhone: '010-1010-1111', guardianRelation: '아버지',
     status: 'active', startDate: '2024-09-15', therapistId: 'th3',
     lastSessionDate: '2025-01-03', trend: 'stable',
-    notes: '자조기술 단계적 향상 중', estimatedDevAge: 44,
+    notes: '자조기술 단계적 향상 중', estimatedDevAge: 44, scheduleDays: '화·금 11:00',
   },
 ];
 
