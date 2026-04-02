@@ -39,6 +39,7 @@ import { VBMAPP_DOMAINS, getDomainLabel } from '@/data/mockData';
 interface GoalsTabProps {
   childId: string;
   goals: Goal[];
+  sessions?: Array<{ id: string; date: string; trials: Array<{ programId: string; trials: number; successes: number; promptLevel: number }> }>;
 }
 
 export function GoalsTab({ childId, goals }: GoalsTabProps) {
