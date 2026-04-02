@@ -219,6 +219,28 @@ export function AnalyticsTab({ sessions, goals }: AnalyticsTabProps) {
     });
   }, [filteredSessions, practicedSTOs]);
 
+  // Cumulative success rate data
+  const cumulativeData = useMemo(() => {
+    const sorted = [...filteredSessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const accum: Record<string, { correct: number; total: number }> = {};
+    return sorted.map((session) => {
+      const dp: Record<string, string | number> = {
+        date: new Date(session.date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+        _sessionId: session.id as any,
+      };
+      practicedSTOs.forEach((goal) => {
+        const trials = session.trialRecords.filter(t => t.programId === goal.id);
+        if (!accum[goal.id]) accum[goal.id] = { correct: 0, total: 0 };
+        if (trials.length > 0) {
+          accum[goal.id].correct += trials.filter(t => t.result === 'correct').length;
+          accum[goal.id].total += trials.length;
+          dp[goal.title] = Math.round((accum[goal.id].correct / accum[goal.id].total) * 100);
+        }
+      });
+      return dp;
+    });
+  }, [filteredSessions, practicedSTOs]);
+
   const displayGoals = selectedGoalId ? practicedSTOs.filter(g => g.id === selectedGoalId) : practicedSTOs;
 
   // Insights
