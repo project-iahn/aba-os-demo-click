@@ -112,7 +112,7 @@ export default function CaseDetail() {
           </div>
 
           {/* Goals Section - takes up most of the space */}
-          <GoalsTab childId={id || ''} goals={goals} />
+          <GoalsTab childId={id || ''} goals={goals} sessions={sessions} />
         </TabsContent>
 
         <TabsContent value="sessions">

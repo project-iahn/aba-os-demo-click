@@ -33,16 +33,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Goal, VBMAPPLevel, ObjectiveType } from '@/data/mockData';
+import type { Goal, VBMAPPLevel, ObjectiveType, Session } from '@/data/mockData';
 import { VBMAPP_DOMAINS, getDomainLabel } from '@/data/mockData';
 
 interface GoalsTabProps {
   childId: string;
   goals: Goal[];
+  sessions?: Session[];
 }
 
-export function GoalsTab({ childId, goals }: GoalsTabProps) {
+export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const { addGoal, updateGoal, deleteGoal, role } = useApp();
+
+  // Calculate last session performance per STO
+  const lastSessionPerformance = useMemo(() => {
+    const perf: Record<string, { rate: number; trials: number; successes: number; date: string }> = {};
+    if (!sessions.length) return perf;
+    // Sort sessions by date desc
+    const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
+    goals.filter(g => g.objectiveType === 'STO').forEach(sto => {
+      for (const s of sorted) {
+        const trial = s.trials.find(t => t.goalId === sto.id);
+        if (trial && trial.trials > 0) {
+          perf[sto.id] = {
+            rate: Math.round((trial.successes / trial.trials) * 100),
+            trials: trial.trials,
+            successes: trial.successes,
+            date: s.date,
+          };
+          break;
+        }
+      }
+    });
+    return perf;
+  }, [sessions, goals]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<VBMAPPLevel | 'all'>('all');
@@ -429,6 +453,23 @@ export function GoalsTab({ childId, goals }: GoalsTabProps) {
                             <div className="mt-2 rounded bg-muted/50 p-2">
                               <p className="text-[10px] text-muted-foreground">목표 기준</p>
                               <p className="text-xs">{sto.targetCriteria}</p>
+                            </div>
+                          )}
+                          {lastSessionPerformance[sto.id] && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <div className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
+                                lastSessionPerformance[sto.id].rate >= 80 ? 'bg-success/10 text-success' :
+                                lastSessionPerformance[sto.id].rate >= 50 ? 'bg-warning/10 text-warning' :
+                                'bg-destructive/10 text-destructive'
+                              }`}>
+                                직전 {lastSessionPerformance[sto.id].rate}%
+                                <span className="font-normal opacity-70">
+                                  ({lastSessionPerformance[sto.id].successes}/{lastSessionPerformance[sto.id].trials})
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(lastSessionPerformance[sto.id].date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                              </span>
                             </div>
                           )}
                         </div>
