@@ -42,8 +42,32 @@ interface GoalsTabProps {
   sessions?: Array<{ id: string; date: string; trials: Array<{ programId: string; trials: number; successes: number; promptLevel: number }> }>;
 }
 
-export function GoalsTab({ childId, goals }: GoalsTabProps) {
+export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const { addGoal, updateGoal, deleteGoal, role } = useApp();
+
+  // Calculate last session performance per STO
+  const lastSessionPerformance = useMemo(() => {
+    const perf: Record<string, { rate: number; trials: number; successes: number; date: string }> = {};
+    if (!sessions.length) return perf;
+    // Sort sessions by date desc
+    const sorted = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
+    // For each STO, find the most recent session that has trials for it
+    goals.filter(g => g.objectiveType === 'STO').forEach(sto => {
+      for (const s of sorted) {
+        const trial = s.trials.find(t => t.programId === sto.id);
+        if (trial && trial.trials > 0) {
+          perf[sto.id] = {
+            rate: Math.round((trial.successes / trial.trials) * 100),
+            trials: trial.trials,
+            successes: trial.successes,
+            date: s.date,
+          };
+          break;
+        }
+      }
+    });
+    return perf;
+  }, [sessions, goals]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<VBMAPPLevel | 'all'>('all');
