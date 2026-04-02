@@ -285,7 +285,7 @@ export const initialChildren: Child[] = [
     guardianName: '윤재호', guardianPhone: '010-8888-1111', guardianRelation: '아버지',
     status: 'active', startDate: '2024-07-15', therapistId: 'th2',
     lastSessionDate: '2025-01-04', trend: 'up',
-    notes: '상징 놀이 빈도 증가', estimatedDevAge: 38,
+    notes: '상징 놀이 빈도 증가', estimatedDevAge: 38, scheduleDays: '월·수 10:30',
   },
   {
     id: 'c9', name: '강도윤', age: 7, birthDate: '2018-08-12',
