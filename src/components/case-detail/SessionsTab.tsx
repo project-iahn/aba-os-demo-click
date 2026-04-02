@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Play, Square, CheckCircle, X, RotateCcw, Clock, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Play, Square, CheckCircle, X, RotateCcw, Clock, ChevronDown, ChevronRight, AlertTriangle, Calendar } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
