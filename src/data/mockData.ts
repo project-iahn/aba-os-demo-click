@@ -293,7 +293,7 @@ export const initialChildren: Child[] = [
     guardianName: '강수진', guardianPhone: '010-9999-1111', guardianRelation: '어머니',
     status: 'inactive', startDate: '2024-03-01', therapistId: 'th2',
     lastSessionDate: '2024-11-30', trend: 'down',
-    notes: '치료 일시 중단 (가정 사정)', estimatedDevAge: 58,
+    notes: '치료 일시 중단 (가정 사정)', estimatedDevAge: 58, scheduleDays: '금 15:00',
   },
   {
     id: 'c3', name: '박지우', age: 6, birthDate: '2019-11-08',
