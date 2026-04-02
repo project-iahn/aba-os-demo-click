@@ -309,7 +309,7 @@ export const initialChildren: Child[] = [
     guardianName: '신동혁', guardianPhone: '010-1010-1111', guardianRelation: '아버지',
     status: 'active', startDate: '2024-09-15', therapistId: 'th3',
     lastSessionDate: '2025-01-03', trend: 'stable',
-    notes: '자조기술 단계적 향상 중', estimatedDevAge: 44,
+    notes: '자조기술 단계적 향상 중', estimatedDevAge: 44, scheduleDays: '화·금 11:00',
   },
 ];
 
