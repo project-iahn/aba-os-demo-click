@@ -269,7 +269,7 @@ export const initialChildren: Child[] = [
     guardianName: '오지훈', guardianPhone: '010-7777-1111', guardianRelation: '아버지',
     status: 'pending', startDate: '2025-01-10', therapistId: 'th1',
     lastSessionDate: '', trend: 'stable',
-    notes: '초기 평가 예정', estimatedDevAge: 24,
+    notes: '초기 평가 예정', estimatedDevAge: 24, scheduleDays: '화 11:00',
   },
   {
     id: 'c2', name: '이서준', age: 4, birthDate: '2021-07-22',
