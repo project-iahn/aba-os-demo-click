@@ -131,6 +131,11 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const handleSaveGoal = () => {
     if (!newGoal.title || !newGoal.description) return;
 
+    const parsedStimuli = stimuliInput
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
     if (editingGoal) {
       updateGoal(editingGoal.id, {
         title: newGoal.title,
@@ -140,6 +145,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
+        stimuli: newGoal.objectiveType === 'STO' ? parsedStimuli : undefined,
       });
     } else {
       const goal: Goal = {
@@ -154,13 +160,15 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
+        stimuli: newGoal.objectiveType === 'STO' ? parsedStimuli : undefined,
       };
       addGoal(goal);
     }
 
     setIsDialogOpen(false);
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand', stimuli: [] });
+    setStimuliInput('');
   };
 
   const handleDeleteGoal = (goalId: string) => {
