@@ -33,8 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Goal, VBMAPPLevel, ObjectiveType, Session } from '@/data/mockData';
-import { VBMAPP_DOMAINS, getDomainLabel } from '@/data/mockData';
+import type { Goal, ObjectiveType, Session } from '@/data/mockData';
+import { ALL_DOMAINS, getDomainLabel } from '@/data/mockData';
 
 interface GoalsTabProps {
   childId: string;
