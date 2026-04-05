@@ -103,6 +103,7 @@ export interface Program {
   domain?: string;
   objectiveType: ObjectiveType;
   parentProgramId?: string; // STO links to LTO
+  stimuli?: string[]; // items to check +/-/P for this STO
 }
 
 // Keep Goal as alias for backward compat
