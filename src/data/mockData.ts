@@ -430,66 +430,66 @@ export const initialGoals: Program[] = [
   // ═══════════════════════════════════════
 
   { id: 'g12-lto', childId: 'c5', title: '사회성', description: '또래와의 다양한 사회적 상황에서 적절한 행동을 할 수 있다.', category: '사회성', targetCriteria: '', createdAt: '2024-08-01', status: 'active', vbmappLevel: 2, domain: 'social', objectiveType: 'LTO' },
-  { id: 'g12', childId: 'c5', title: '차례 지키기', description: '게임에서 차례 기다리고 지키기', category: '사회성', targetCriteria: '3회 연속 독립 수행', createdAt: '2024-08-01', status: 'active', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g12-lto' },
-  { id: 'g12b', childId: 'c5', title: '양보하기', description: '또래에게 장난감을 양보할 수 있다.', category: '사회성', targetCriteria: '하루 2회 자발적 양보', createdAt: '2024-09-01', status: 'active', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g12-lto' },
+  { id: 'g12', childId: 'c5', title: '차례 지키기', description: '게임에서 차례 기다리고 지키기', category: '사회성', targetCriteria: '3회 연속 독립 수행', createdAt: '2024-08-01', status: 'active', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g12-lto', stimuli: ['주사위 던지기', '카드 뽑기', '블록 쌓기', '퍼즐 조각', '공 던지기', '그림 맞추기', '순서 기다리기', '말 옮기기'] },
+  { id: 'g12b', childId: 'c5', title: '양보하기', description: '또래에게 장난감을 양보할 수 있다.', category: '사회성', targetCriteria: '하루 2회 자발적 양보', createdAt: '2024-09-01', status: 'active', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g12-lto', stimuli: ['장난감 건네기', '자리 양보', '먼저 하기 양보'] },
 
   { id: 'g13-lto', childId: 'c5', title: '인트라버벌(대화)', description: '대화 상황에서 적절한 언어적 반응을 할 수 있다.', category: '인트라버벌', targetCriteria: '', createdAt: '2024-08-15', status: 'active', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'LTO' },
-  { id: 'g13', childId: 'c5', title: '감정 표현하기', description: '기본 감정 단어로 표현하기', category: '인트라버벌', targetCriteria: '하루 5회 이상 자발적 표현', createdAt: '2024-08-15', status: 'active', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'STO', parentProgramId: 'g13-lto' },
-  { id: 'g13b', childId: 'c5', title: '이유 말하기', description: '"왜?"라는 질문에 이유를 대답할 수 있다.', category: '인트라버벌', targetCriteria: '5회 연속 적절한 대답', createdAt: '2024-09-01', status: 'active', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'STO', parentProgramId: 'g13-lto' },
+  { id: 'g13', childId: 'c5', title: '감정 표현하기', description: '기본 감정 단어로 표현하기', category: '인트라버벌', targetCriteria: '하루 5회 이상 자발적 표현', createdAt: '2024-08-15', status: 'active', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'STO', parentProgramId: 'g13-lto', stimuli: ['기뻐요', '슬퍼요', '화나요', '무서워요', '좋아요', '싫어요', '놀라워요', '지루해요'] },
+  { id: 'g13b', childId: 'c5', title: '이유 말하기', description: '"왜?"라는 질문에 이유를 대답할 수 있다.', category: '인트라버벌', targetCriteria: '5회 연속 적절한 대답', createdAt: '2024-09-01', status: 'active', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'STO', parentProgramId: 'g13-lto', stimuli: ['왜 울어?', '왜 웃어?', '왜 싫어?', '왜 좋아?'] },
 
   { id: 'g13c-lto', childId: 'c5', title: '집단기술', description: '소집단 활동에서 적절히 참여하고 규칙을 따를 수 있다.', category: '집단기술', targetCriteria: '', createdAt: '2024-09-01', status: 'active', vbmappLevel: 2, domain: 'group', objectiveType: 'LTO' },
-  { id: 'g13c', childId: 'c5', title: '집단 활동 참여', description: '소집단(3~5명) 활동에서 10분 이상 참여하기', category: '집단기술', targetCriteria: '3회 연속 10분 이상', createdAt: '2024-09-01', status: 'active', vbmappLevel: 2, domain: 'group', objectiveType: 'STO', parentProgramId: 'g13c-lto' },
+  { id: 'g13c', childId: 'c5', title: '집단 활동 참여', description: '소집단(3~5명) 활동에서 10분 이상 참여하기', category: '집단기술', targetCriteria: '3회 연속 10분 이상', createdAt: '2024-09-01', status: 'active', vbmappLevel: 2, domain: 'group', objectiveType: 'STO', parentProgramId: 'g13c-lto', stimuli: ['노래 부르기', '게임 참여', '이야기 듣기', '순서 지키기'] },
 
   // ═══════════════════════════════════════
   // 한소율 (c6) - Level 1
   // ═══════════════════════════════════════
 
   { id: 'g14-lto', childId: 'c6', title: '택트(명명하기)', description: '사물, 사람, 사건 등을 보고 이름을 말할 수 있다.', category: '택트', targetCriteria: '', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'tact', objectiveType: 'LTO' },
-  { id: 'g14', childId: 'c6', title: '그림 카드 명명', description: '그림 카드를 보고 이름 말하기', category: '택트', targetCriteria: '20개 카드 중 16개 정확', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'tact', objectiveType: 'STO', parentProgramId: 'g14-lto' },
-  { id: 'g14b', childId: 'c6', title: '실물 명명하기', description: '실물을 보고 이름 말하기', category: '택트', targetCriteria: '10개 실물 중 8개 정확', createdAt: '2024-12-15', status: 'active', vbmappLevel: 1, domain: 'tact', objectiveType: 'STO', parentProgramId: 'g14-lto' },
+  { id: 'g14', childId: 'c6', title: '그림 카드 명명', description: '그림 카드를 보고 이름 말하기', category: '택트', targetCriteria: '20개 카드 중 16개 정확', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'tact', objectiveType: 'STO', parentProgramId: 'g14-lto', stimuli: ['사과', '자동차', '강아지', '고양이', '공', '물', '나무', '꽃', '집', '배'] },
+  { id: 'g14b', childId: 'c6', title: '실물 명명하기', description: '실물을 보고 이름 말하기', category: '택트', targetCriteria: '10개 실물 중 8개 정확', createdAt: '2024-12-15', status: 'active', vbmappLevel: 1, domain: 'tact', objectiveType: 'STO', parentProgramId: 'g14-lto', stimuli: ['컵', '신발', '의자', '가방', '책'] },
 
   { id: 'g15-lto', childId: 'c6', title: '맨드(요구하기)', description: '원하는 것을 적절한 방법으로 요구할 수 있다.', category: '맨드', targetCriteria: '', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'mand', objectiveType: 'LTO' },
-  { id: 'g15', childId: 'c6', title: '요구 표현하기', description: '원하는 것을 몸짓/말로 표현', category: '맨드', targetCriteria: '5회 연속 자발적 표현', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'mand', objectiveType: 'STO', parentProgramId: 'g15-lto' },
+  { id: 'g15', childId: 'c6', title: '요구 표현하기', description: '원하는 것을 몸짓/말로 표현', category: '맨드', targetCriteria: '5회 연속 자발적 표현', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'mand', objectiveType: 'STO', parentProgramId: 'g15-lto', stimuli: ['줘', '더', '싫어', '좋아', '안아', '열어'] },
 
   { id: 'g15b-lto', childId: 'c6', title: '청자반응(변별하기)', description: '언어 지시에 따라 적절한 행동을 수행할 수 있다.', category: '청자반응', targetCriteria: '', createdAt: '2024-12-15', status: 'active', vbmappLevel: 1, domain: 'listener', objectiveType: 'LTO' },
-  { id: 'g15b', childId: 'c6', title: '신체 부위 가리키기', description: '"코 어디?" 등 신체 부위를 가리킬 수 있다.', category: '청자반응', targetCriteria: '5개 부위 80% 정확', createdAt: '2024-12-15', status: 'active', vbmappLevel: 1, domain: 'listener', objectiveType: 'STO', parentProgramId: 'g15b-lto' },
+  { id: 'g15b', childId: 'c6', title: '신체 부위 가리키기', description: '"코 어디?" 등 신체 부위를 가리킬 수 있다.', category: '청자반응', targetCriteria: '5개 부위 80% 정확', createdAt: '2024-12-15', status: 'active', vbmappLevel: 1, domain: 'listener', objectiveType: 'STO', parentProgramId: 'g15b-lto', stimuli: ['코', '눈', '입', '귀', '머리'] },
 
   // ═══════════════════════════════════════
   // 윤서아 (c8) - Level 1
   // ═══════════════════════════════════════
 
   { id: 'g16-lto', childId: 'c8', title: '놀이', description: '다양한 놀이 활동에 참여하고 상징적 놀이를 할 수 있다.', category: '놀이', targetCriteria: '', createdAt: '2024-07-15', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'LTO' },
-  { id: 'g16', childId: 'c8', title: '상징 놀이', description: '인형/소꿉놀이에서 역할 수행', category: '놀이', targetCriteria: '5분 이상 독립적 상징 놀이', createdAt: '2024-07-15', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g16-lto' },
-  { id: 'g16b', childId: 'c8', title: '구성 놀이', description: '블록/레고로 구조물 만들기', category: '놀이', targetCriteria: '3단 이상 쌓기 독립 수행', createdAt: '2024-08-01', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g16-lto' },
+  { id: 'g16', childId: 'c8', title: '상징 놀이', description: '인형/소꿉놀이에서 역할 수행', category: '놀이', targetCriteria: '5분 이상 독립적 상징 놀이', createdAt: '2024-07-15', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g16-lto', stimuli: ['인형 밥주기', '인형 재우기', '소꿉 요리', '병원 놀이', '가게 놀이', '전화 놀이', '운전 놀이', '학교 놀이'] },
+  { id: 'g16b', childId: 'c8', title: '구성 놀이', description: '블록/레고로 구조물 만들기', category: '놀이', targetCriteria: '3단 이상 쌓기 독립 수행', createdAt: '2024-08-01', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g16-lto', stimuli: ['블록 쌓기', '레고 조립', '퍼즐 맞추기'] },
 
   { id: 'g17-lto', childId: 'c8', title: '사회성', description: '또래와의 사회적 상호작용에서 적절한 행동을 보일 수 있다.', category: '사회성', targetCriteria: '', createdAt: '2024-08-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'LTO' },
-  { id: 'g17', childId: 'c8', title: '또래 놀이 참여', description: '또래와 함께 놀이 활동 참여', category: '사회성', targetCriteria: '10분 이상 또래와 협동 놀이', createdAt: '2024-08-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g17-lto' },
+  { id: 'g17', childId: 'c8', title: '또래 놀이 참여', description: '또래와 함께 놀이 활동 참여', category: '사회성', targetCriteria: '10분 이상 또래와 협동 놀이', createdAt: '2024-08-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g17-lto', stimuli: ['블록 함께', '공 주고받기', '그림 함께', '노래 함께', '춤 함께', '퍼즐 함께'] },
 
   { id: 'g17b-lto', childId: 'c8', title: '모방(동작 모방)', description: '타인의 동작을 관찰하고 모방할 수 있다.', category: '모방', targetCriteria: '', createdAt: '2024-09-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'LTO' },
-  { id: 'g17b', childId: 'c8', title: '놀이 동작 모방', description: '또래의 놀이 동작을 관찰하고 따라하기', category: '모방', targetCriteria: '5개 동작 80% 정확', createdAt: '2024-09-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g17b-lto' },
+  { id: 'g17b', childId: 'c8', title: '놀이 동작 모방', description: '또래의 놀이 동작을 관찰하고 따라하기', category: '모방', targetCriteria: '5개 동작 80% 정확', createdAt: '2024-09-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g17b-lto', stimuli: ['박수', '만세', '점프', '돌기', '손흔들기'] },
 
   // ═══════════════════════════════════════
   // 강도윤 (c9) - Level 2
   // ═══════════════════════════════════════
 
   { id: 'g18-lto', childId: 'c9', title: '사회성', description: '감정 조절 및 자기 표현을 적절히 할 수 있다.', category: '사회성', targetCriteria: '', createdAt: '2024-03-01', status: 'paused', vbmappLevel: 2, domain: 'social', objectiveType: 'LTO' },
-  { id: 'g18', childId: 'c9', title: '감정 조절', description: '화가 날 때 적절한 대처 전략 사용', category: '사회성', targetCriteria: '대처 전략 독립 사용 5회 연속', createdAt: '2024-03-01', status: 'paused', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g18-lto' },
-  { id: 'g18b', childId: 'c9', title: '화난 상황 인식', description: '화가 나는 상황을 사전에 인식하고 알릴 수 있다.', category: '사회성', targetCriteria: '3회 연속 사전 알림', createdAt: '2024-04-01', status: 'paused', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g18-lto' },
+  { id: 'g18', childId: 'c9', title: '감정 조절', description: '화가 날 때 적절한 대처 전략 사용', category: '사회성', targetCriteria: '대처 전략 독립 사용 5회 연속', createdAt: '2024-03-01', status: 'paused', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g18-lto', stimuli: ['심호흡', '숫자 세기', '자리 이동', '말로 표현', '도움 요청', '기다리기', '대안 찾기', '타이머 사용'] },
+  { id: 'g18b', childId: 'c9', title: '화난 상황 인식', description: '화가 나는 상황을 사전에 인식하고 알릴 수 있다.', category: '사회성', targetCriteria: '3회 연속 사전 알림', createdAt: '2024-04-01', status: 'paused', vbmappLevel: 2, domain: 'social', objectiveType: 'STO', parentProgramId: 'g18-lto', stimuli: ['화나요', '짜증나요', '힘들어요'] },
 
   { id: 'g19-lto', childId: 'c9', title: '인트라버벌(대화)', description: '불편한 상황을 언어로 표현할 수 있다.', category: '인트라버벌', targetCriteria: '', createdAt: '2024-03-15', status: 'paused', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'LTO' },
-  { id: 'g19', childId: 'c9', title: '자기 표현', description: '불편한 상황을 말로 표현하기', category: '인트라버벌', targetCriteria: '5회 연속 적절한 언어 사용', createdAt: '2024-03-15', status: 'paused', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'STO', parentProgramId: 'g19-lto' },
+  { id: 'g19', childId: 'c9', title: '자기 표현', description: '불편한 상황을 말로 표현하기', category: '인트라버벌', targetCriteria: '5회 연속 적절한 언어 사용', createdAt: '2024-03-15', status: 'paused', vbmappLevel: 2, domain: 'intraverbal', objectiveType: 'STO', parentProgramId: 'g19-lto', stimuli: ['아파요', '힘들어요', '도와주세요', '쉬고 싶어요', '무서워요', '싫어요'] },
 
   // ═══════════════════════════════════════
   // 신예린 (c10) - Level 1
   // ═══════════════════════════════════════
 
   { id: 'g20-lto', childId: 'c10', title: '모방(동작 모방)', description: '일상생활 동작을 관찰하고 독립적으로 수행할 수 있다.', category: '모방', targetCriteria: '', createdAt: '2024-09-15', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'LTO' },
-  { id: 'g20', childId: 'c10', title: '혼자 숟가락 사용', description: '식사 시 숟가락으로 독립 식사', category: '모방', targetCriteria: '한 끼 독립적 수행', createdAt: '2024-09-15', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g20-lto' },
-  { id: 'g21', childId: 'c10', title: '상의 착탈의', description: '상의 혼자 벗고 입기', category: '모방', targetCriteria: '3회 연속 독립 수행', createdAt: '2024-10-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g20-lto' },
-  { id: 'g21b', childId: 'c10', title: '손 씻기', description: '감독 하에 혼자 손 씻기(비누 사용 포함)', category: '모방', targetCriteria: '모든 단계 독립 수행', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g20-lto' },
+  { id: 'g20', childId: 'c10', title: '혼자 숟가락 사용', description: '식사 시 숟가락으로 독립 식사', category: '모방', targetCriteria: '한 끼 독립적 수행', createdAt: '2024-09-15', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g20-lto', stimuli: ['밥 뜨기', '입으로', '국 뜨기', '반찬 집기', '흘리지 않기', '그릇 잡기', '숟가락 잡기', '입 닦기'] },
+  { id: 'g21', childId: 'c10', title: '상의 착탈의', description: '상의 혼자 벗고 입기', category: '모방', targetCriteria: '3회 연속 독립 수행', createdAt: '2024-10-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g20-lto', stimuli: ['팔 빼기', '머리 빼기', '팔 넣기', '머리 넣기', '앞뒤 확인', '지퍼/단추'] },
+  { id: 'g21b', childId: 'c10', title: '손 씻기', description: '감독 하에 혼자 손 씻기(비누 사용 포함)', category: '모방', targetCriteria: '모든 단계 독립 수행', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g20-lto', stimuli: ['수도꼭지 열기', '물 적시기', '비누 칠하기', '문지르기', '헹구기', '수건 닦기'] },
 
   { id: 'g21c-lto', childId: 'c10', title: '청자반응(변별하기)', description: '언어 지시에 따라 적절한 행동을 수행할 수 있다.', category: '청자반응', targetCriteria: '', createdAt: '2024-10-01', status: 'active', vbmappLevel: 1, domain: 'listener', objectiveType: 'LTO' },
-  { id: 'g21c', childId: 'c10', title: '일상 지시 따르기', description: '"신발 벗어", "가방 놓아" 등 일상 지시 수행하기', category: '청자반응', targetCriteria: '5회 연속 80% 이상', createdAt: '2024-10-01', status: 'active', vbmappLevel: 1, domain: 'listener', objectiveType: 'STO', parentProgramId: 'g21c-lto' },
+  { id: 'g21c', childId: 'c10', title: '일상 지시 따르기', description: '"신발 벗어", "가방 놓아" 등 일상 지시 수행하기', category: '청자반응', targetCriteria: '5회 연속 80% 이상', createdAt: '2024-10-01', status: 'active', vbmappLevel: 1, domain: 'listener', objectiveType: 'STO', parentProgramId: 'g21c-lto', stimuli: ['신발 벗어', '가방 놓아', '손 씻어', '앉아', '일어나'] },
 ];
 
 // Helper to generate trial records from legacy aggregated data
