@@ -48,6 +48,7 @@ const COMMON_STIMULI: Record<string, string[]> = {
 };
 
 function getStimuliForGoal(goal: Goal): string[] {
+  if (goal.stimuli && goal.stimuli.length > 0) return goal.stimuli;
   return COMMON_STIMULI[goal.domain || ''] || ['자극1', '자극2', '자극3', '자극4', '자극5'];
 }
 
