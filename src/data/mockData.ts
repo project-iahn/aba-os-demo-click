@@ -364,24 +364,24 @@ export const initialGoals: Program[] = [
   // ═══════════════════════════════════════
 
   { id: 'g4-lto', childId: 'c2', title: '사회성', description: '또래와의 상호작용에서 적절한 사회적 행동을 보일 수 있다.', category: '사회성', targetCriteria: '', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'LTO' },
-  { id: 'g4', childId: 'c2', title: '차례 기다리기', description: '놀이 상황에서 차례 기다리기', category: '사회성', targetCriteria: '3분 이상 적절히 기다리기', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g4-lto' },
-  { id: 'g4b', childId: 'c2', title: '함께 놀이하기', description: '또래와 5분 이상 협동 놀이 참여하기', category: '사회성', targetCriteria: '3회 연속 5분 이상', createdAt: '2024-11-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g4-lto' },
+  { id: 'g4', childId: 'c2', title: '차례 기다리기', description: '놀이 상황에서 차례 기다리기', category: '사회성', targetCriteria: '3분 이상 적절히 기다리기', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g4-lto', stimuli: ['블록 쌓기', '공 굴리기', '퍼즐 맞추기', '그림 그리기', '색칠하기', '카드 게임', '보드게임', '인형 놀이'] },
+  { id: 'g4b', childId: 'c2', title: '함께 놀이하기', description: '또래와 5분 이상 협동 놀이 참여하기', category: '사회성', targetCriteria: '3회 연속 5분 이상', createdAt: '2024-11-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g4-lto', stimuli: ['블록 함께', '공 주고받기', '그림 함께', '노래 함께'] },
 
   { id: 'g5-lto', childId: 'c2', title: '시각/매칭(시지각)', description: '시각적 자극을 변별하고 매칭할 수 있다.', category: '시지각', targetCriteria: '', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'vp_mts', objectiveType: 'LTO' },
-  { id: 'g5', childId: 'c2', title: '감각 조절', description: '다양한 촉감에 적응하기', category: '시지각', targetCriteria: '새로운 촉감 5개 이상 수용', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'vp_mts', objectiveType: 'STO', parentProgramId: 'g5-lto' },
-  { id: 'g5b', childId: 'c2', title: '동일 사물 매칭', description: '동일한 사물끼리 짝짓기', category: '시지각', targetCriteria: '10쌍 중 8쌍 정확', createdAt: '2024-11-01', status: 'active', vbmappLevel: 1, domain: 'vp_mts', objectiveType: 'STO', parentProgramId: 'g5-lto' },
+  { id: 'g5', childId: 'c2', title: '감각 조절', description: '다양한 촉감에 적응하기', category: '시지각', targetCriteria: '새로운 촉감 5개 이상 수용', createdAt: '2024-10-15', status: 'active', vbmappLevel: 1, domain: 'vp_mts', objectiveType: 'STO', parentProgramId: 'g5-lto', stimuli: ['모래', '점토', '물감', '스티커', '솜', '나무 블록', '고무공', '천'] },
+  { id: 'g5b', childId: 'c2', title: '동일 사물 매칭', description: '동일한 사물끼리 짝짓기', category: '시지각', targetCriteria: '10쌍 중 8쌍 정확', createdAt: '2024-11-01', status: 'active', vbmappLevel: 1, domain: 'vp_mts', objectiveType: 'STO', parentProgramId: 'g5-lto', stimuli: ['컵-컵', '공-공', '신발-신발', '사과-사과', '자동차-자동차'] },
 
   { id: 'g6-lto', childId: 'c2', title: '모방(동작 모방)', description: '타인의 동작을 관찰하고 모방할 수 있다.', category: '모방', targetCriteria: '', createdAt: '2024-11-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'LTO' },
-  { id: 'g6', childId: 'c2', title: '모방하기', description: '간단한 동작 모방하기', category: '모방', targetCriteria: '5회 연속 80% 이상 성공', createdAt: '2024-11-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g6-lto' },
+  { id: 'g6', childId: 'c2', title: '모방하기', description: '간단한 동작 모방하기', category: '모방', targetCriteria: '5회 연속 80% 이상 성공', createdAt: '2024-11-01', status: 'active', vbmappLevel: 1, domain: 'imitation', objectiveType: 'STO', parentProgramId: 'g6-lto', stimuli: ['박수', '만세', '점프', '돌기', '손흔들기', '고개 끄덕', '발 구르기', '팔 벌리기', '손뼉', '인사'] },
 
   { id: 'g6b-lto', childId: 'c2', title: '놀이', description: '다양한 장난감과 놀이 활동에 기능적으로 참여할 수 있다.', category: '놀이', targetCriteria: '', createdAt: '2024-11-15', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'LTO' },
-  { id: 'g6b', childId: 'c2', title: '기능적 놀이', description: '장난감을 용도에 맞게 사용하기(자동차 굴리기, 블록 쌓기)', category: '놀이', targetCriteria: '5개 장난감 독립 사용', createdAt: '2024-11-15', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g6b-lto' },
-  { id: 'g6c', childId: 'c2', title: '독립 놀이 유지', description: '감독 하에 10분 이상 독립적으로 놀이 활동 유지하기', category: '놀이', targetCriteria: '3회 연속 10분 이상', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g6b-lto' },
+  { id: 'g6b', childId: 'c2', title: '기능적 놀이', description: '장난감을 용도에 맞게 사용하기(자동차 굴리기, 블록 쌓기)', category: '놀이', targetCriteria: '5개 장난감 독립 사용', createdAt: '2024-11-15', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g6b-lto', stimuli: ['자동차 굴리기', '블록 쌓기', '공 던지기', '인형 안기', '전화기 대기'] },
+  { id: 'g6c', childId: 'c2', title: '독립 놀이 유지', description: '감독 하에 10분 이상 독립적으로 놀이 활동 유지하기', category: '놀이', targetCriteria: '3회 연속 10분 이상', createdAt: '2024-12-01', status: 'active', vbmappLevel: 1, domain: 'play', objectiveType: 'STO', parentProgramId: 'g6b-lto', stimuli: ['블록', '퍼즐', '그림그리기', '자동차', '인형'] },
 
   // 완료된 목표 (c2)
   { id: 'g6d-lto', childId: 'c2', title: '에코익(따라 말하기)', description: '치료사의 음성 모델을 따라 말할 수 있다.', category: '에코익', targetCriteria: '', createdAt: '2024-10-01', status: 'mastered', vbmappLevel: 1, domain: 'echoic', objectiveType: 'LTO' },
-  { id: 'g6d', childId: 'c2', title: '단음절 따라하기', description: '단음절 소리를 정확하게 따라 말할 수 있다.', category: '에코익', targetCriteria: '10회 중 8회 정확', createdAt: '2024-10-01', status: 'mastered', vbmappLevel: 1, domain: 'echoic', objectiveType: 'STO', parentProgramId: 'g6d-lto' },
-  { id: 'g6e', childId: 'c2', title: '간단한 인사하기', description: '안녕이라고 말할 수 있다.', category: '사회성', targetCriteria: '5회 연속 자발적 인사', createdAt: '2024-10-15', status: 'mastered', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g4-lto' },
+  { id: 'g6d', childId: 'c2', title: '단음절 따라하기', description: '단음절 소리를 정확하게 따라 말할 수 있다.', category: '에코익', targetCriteria: '10회 중 8회 정확', createdAt: '2024-10-01', status: 'mastered', vbmappLevel: 1, domain: 'echoic', objectiveType: 'STO', parentProgramId: 'g6d-lto', stimuli: ['아', '오', '이', '우', '에'] },
+  { id: 'g6e', childId: 'c2', title: '간단한 인사하기', description: '안녕이라고 말할 수 있다.', category: '사회성', targetCriteria: '5회 연속 자발적 인사', createdAt: '2024-10-15', status: 'mastered', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g4-lto', stimuli: ['안녕', '안녕하세요', '잘 가'] },
 
   // ═══════════════════════════════════════
   // 박지우 (c3) - Level 2
