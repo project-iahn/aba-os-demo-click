@@ -106,10 +106,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     });
   };
 
-  const availableDomains = useMemo(() => {
-    const level = (newGoal.vbmappLevel || 1) as VBMAPPLevel;
-    return VBMAPP_DOMAINS[level] || [];
-  }, [newGoal.vbmappLevel]);
+  const availableDomains = ALL_DOMAINS;
 
   const availableLTOs = useMemo(() => {
     return goals.filter(g => g.objectiveType === 'LTO' && g.childId === childId);
@@ -123,7 +120,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
 
   const openCreateDialog = () => {
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', vbmappLevel: 1, domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
     setIsDialogOpen(true);
   };
 
@@ -136,7 +133,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         description: newGoal.description,
         category: getDomainLabel(newGoal.domain || 'mand'),
         targetCriteria: newGoal.targetCriteria || '',
-        vbmappLevel: newGoal.vbmappLevel as VBMAPPLevel,
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
@@ -151,7 +147,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         targetCriteria: newGoal.targetCriteria || '',
         createdAt: new Date().toISOString().split('T')[0],
         status: 'active',
-        vbmappLevel: newGoal.vbmappLevel as VBMAPPLevel,
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
@@ -161,7 +156,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
 
     setIsDialogOpen(false);
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', vbmappLevel: 1, domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
   };
 
   const handleDeleteGoal = (goalId: string) => {
@@ -176,14 +171,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     }
   };
 
-  const getLevelBadgeColor = (level?: VBMAPPLevel) => {
-    switch (level) {
-      case 1: return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 2: return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-      case 3: return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
-      default: return '';
-    }
-  };
 
   const activeLTOCount = activeGoals.filter(g => g.objectiveType === 'LTO' && g.status === 'active').length;
   const activeSTOCount = activeGoals.filter(g => g.objectiveType === 'STO').length;
