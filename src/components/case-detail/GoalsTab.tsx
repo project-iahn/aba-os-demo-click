@@ -69,14 +69,12 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   }, [sessions, goals]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
-  const [selectedLevel, setSelectedLevel] = useState<VBMAPPLevel | 'all'>('all');
   const [showMastered, setShowMastered] = useState(false);
   const [expandedLTOs, setExpandedLTOs] = useState<Set<string>>(new Set());
   const [newGoal, setNewGoal] = useState<Partial<Goal>>({
     category: '',
     status: 'active',
     objectiveType: 'STO',
-    vbmappLevel: 1,
     domain: 'mand',
   });
 
