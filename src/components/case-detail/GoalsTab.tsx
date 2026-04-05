@@ -89,10 +89,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const ltos = useMemo(() => currentGoals.filter(g => g.objectiveType === 'LTO'), [currentGoals]);
   const stos = useMemo(() => currentGoals.filter(g => g.objectiveType === 'STO'), [currentGoals]);
 
-  const filteredLTOs = useMemo(() => {
-    if (selectedLevel === 'all') return ltos;
-    return ltos.filter(g => g.vbmappLevel === selectedLevel);
-  }, [ltos, selectedLevel]);
+  const filteredLTOs = ltos;
 
   const getSTOsForLTO = (ltoId: string) => stos.filter(s => s.parentProgramId === ltoId);
 
