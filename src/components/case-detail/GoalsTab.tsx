@@ -191,21 +191,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Select
-            value={String(selectedLevel)}
-            onValueChange={(v) => setSelectedLevel(v === 'all' ? 'all' : (Number(v) as VBMAPPLevel))}
-          >
-            <SelectTrigger className="w-[130px] h-8 text-xs">
-              <Layers className="h-3 w-3 mr-1" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체 수준</SelectItem>
-              <SelectItem value="1">수준 1</SelectItem>
-              <SelectItem value="2">수준 2</SelectItem>
-              <SelectItem value="3">수준 3</SelectItem>
-            </SelectContent>
-          </Select>
 
           {canCreate && (
             <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingGoal(null); }}>
@@ -231,20 +216,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                         <SelectContent>
                           <SelectItem value="LTO">장기목표</SelectItem>
                           <SelectItem value="STO">단기목표</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>발달 수준 *</Label>
-                      <Select
-                        value={String(newGoal.vbmappLevel)}
-                        onValueChange={(v) => setNewGoal({ ...newGoal, vbmappLevel: Number(v) as VBMAPPLevel, domain: VBMAPP_DOMAINS[Number(v) as VBMAPPLevel]?.[0]?.key })}
-                      >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">수준 1</SelectItem>
-                          <SelectItem value="2">수준 2</SelectItem>
-                          <SelectItem value="3">수준 3</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -354,8 +325,8 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                   {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <Badge className={`text-[10px] ${getLevelBadgeColor(lto.vbmappLevel)}`}>
-                        수준 {lto.vbmappLevel}
+                      <Badge variant="outline" className="text-[10px]">
+                        {lto.domain ? getDomainLabel(lto.domain) : lto.category}
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">
                         {lto.domain ? getDomainLabel(lto.domain) : lto.category}
@@ -504,7 +475,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
             );
           })}
 
-          {orphanSTOs.length > 0 && selectedLevel === 'all' && (
+          {orphanSTOs.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-muted-foreground">미분류 단기목표</h3>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
