@@ -429,6 +429,15 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                               <p className="text-xs">{sto.targetCriteria}</p>
                             </div>
                           )}
+                          {sto.stimuli && sto.stimuli.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {sto.stimuli.map((s, i) => (
+                                <span key={i} className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary font-medium">
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           {lastSessionPerformance[sto.id] && (
                             <div className="mt-2 flex items-center gap-2">
                               <div className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
