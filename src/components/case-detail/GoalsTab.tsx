@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronRight, Layers, Pencil, Trash2, Check } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Pencil, Trash2, Check } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -33,8 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Goal, VBMAPPLevel, ObjectiveType, Session } from '@/data/mockData';
-import { VBMAPP_DOMAINS, getDomainLabel } from '@/data/mockData';
+import type { Goal, ObjectiveType, Session } from '@/data/mockData';
+import { ALL_DOMAINS, getDomainLabel } from '@/data/mockData';
 
 interface GoalsTabProps {
   childId: string;
@@ -69,14 +69,12 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   }, [sessions, goals]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
-  const [selectedLevel, setSelectedLevel] = useState<VBMAPPLevel | 'all'>('all');
   const [showMastered, setShowMastered] = useState(false);
   const [expandedLTOs, setExpandedLTOs] = useState<Set<string>>(new Set());
   const [newGoal, setNewGoal] = useState<Partial<Goal>>({
     category: '',
     status: 'active',
     objectiveType: 'STO',
-    vbmappLevel: 1,
     domain: 'mand',
   });
 
@@ -91,10 +89,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const ltos = useMemo(() => currentGoals.filter(g => g.objectiveType === 'LTO'), [currentGoals]);
   const stos = useMemo(() => currentGoals.filter(g => g.objectiveType === 'STO'), [currentGoals]);
 
-  const filteredLTOs = useMemo(() => {
-    if (selectedLevel === 'all') return ltos;
-    return ltos.filter(g => g.vbmappLevel === selectedLevel);
-  }, [ltos, selectedLevel]);
+  const filteredLTOs = ltos;
 
   const getSTOsForLTO = (ltoId: string) => stos.filter(s => s.parentProgramId === ltoId);
 
@@ -111,10 +106,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     });
   };
 
-  const availableDomains = useMemo(() => {
-    const level = (newGoal.vbmappLevel || 1) as VBMAPPLevel;
-    return VBMAPP_DOMAINS[level] || [];
-  }, [newGoal.vbmappLevel]);
+  const availableDomains = ALL_DOMAINS;
 
   const availableLTOs = useMemo(() => {
     return goals.filter(g => g.objectiveType === 'LTO' && g.childId === childId);
@@ -128,7 +120,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
 
   const openCreateDialog = () => {
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', vbmappLevel: 1, domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
     setIsDialogOpen(true);
   };
 
@@ -141,7 +133,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         description: newGoal.description,
         category: getDomainLabel(newGoal.domain || 'mand'),
         targetCriteria: newGoal.targetCriteria || '',
-        vbmappLevel: newGoal.vbmappLevel as VBMAPPLevel,
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
@@ -156,7 +147,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         targetCriteria: newGoal.targetCriteria || '',
         createdAt: new Date().toISOString().split('T')[0],
         status: 'active',
-        vbmappLevel: newGoal.vbmappLevel as VBMAPPLevel,
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
@@ -166,7 +156,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
 
     setIsDialogOpen(false);
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', vbmappLevel: 1, domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
   };
 
   const handleDeleteGoal = (goalId: string) => {
@@ -181,14 +171,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     }
   };
 
-  const getLevelBadgeColor = (level?: VBMAPPLevel) => {
-    switch (level) {
-      case 1: return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 2: return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
-      case 3: return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
-      default: return '';
-    }
-  };
 
   const activeLTOCount = activeGoals.filter(g => g.objectiveType === 'LTO' && g.status === 'active').length;
   const activeSTOCount = activeGoals.filter(g => g.objectiveType === 'STO').length;
@@ -209,21 +191,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Select
-            value={String(selectedLevel)}
-            onValueChange={(v) => setSelectedLevel(v === 'all' ? 'all' : (Number(v) as VBMAPPLevel))}
-          >
-            <SelectTrigger className="w-[130px] h-8 text-xs">
-              <Layers className="h-3 w-3 mr-1" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체 수준</SelectItem>
-              <SelectItem value="1">수준 1</SelectItem>
-              <SelectItem value="2">수준 2</SelectItem>
-              <SelectItem value="3">수준 3</SelectItem>
-            </SelectContent>
-          </Select>
 
           {canCreate && (
             <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingGoal(null); }}>
@@ -253,34 +220,19 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>발달 수준 *</Label>
+                      <Label>영역 *</Label>
                       <Select
-                        value={String(newGoal.vbmappLevel)}
-                        onValueChange={(v) => setNewGoal({ ...newGoal, vbmappLevel: Number(v) as VBMAPPLevel, domain: VBMAPP_DOMAINS[Number(v) as VBMAPPLevel]?.[0]?.key })}
+                        value={newGoal.domain}
+                        onValueChange={(v) => setNewGoal({ ...newGoal, domain: v })}
                       >
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">수준 1</SelectItem>
-                          <SelectItem value="2">수준 2</SelectItem>
-                          <SelectItem value="3">수준 3</SelectItem>
+                          {availableDomains.map((d) => (
+                            <SelectItem key={d.key} value={d.key}>{d.labelKo}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>영역 *</Label>
-                    <Select
-                      value={newGoal.domain}
-                      onValueChange={(v) => setNewGoal({ ...newGoal, domain: v })}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {availableDomains.map((d) => (
-                          <SelectItem key={d.key} value={d.key}>{d.labelKo}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
 
                   {newGoal.objectiveType === 'STO' && availableLTOs.length > 0 && (
@@ -372,9 +324,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                   {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <Badge className={`text-[10px] ${getLevelBadgeColor(lto.vbmappLevel)}`}>
-                        수준 {lto.vbmappLevel}
-                      </Badge>
                       <Badge variant="outline" className="text-[10px]">
                         {lto.domain ? getDomainLabel(lto.domain) : lto.category}
                       </Badge>
@@ -522,7 +471,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
             );
           })}
 
-          {orphanSTOs.length > 0 && selectedLevel === 'all' && (
+          {orphanSTOs.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-muted-foreground">미분류 단기목표</h3>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

@@ -70,13 +70,22 @@ export const VBMAPP_DOMAINS: Record<VBMAPPLevel, { key: string; label: string; l
   ],
 };
 
+// All unique domains (flattened, deduplicated)
+export const ALL_DOMAINS: { key: string; label: string; labelKo: string }[] = (() => {
+  const seen = new Set<string>();
+  const result: { key: string; label: string; labelKo: string }[] = [];
+  for (const level of [1, 2, 3] as VBMAPPLevel[]) {
+    for (const d of VBMAPP_DOMAINS[level]) {
+      if (!seen.has(d.key)) { seen.add(d.key); result.push(d); }
+    }
+  }
+  return result;
+})();
+
 // Helper to get domain label
 export function getDomainLabel(domainKey: string): string {
-  for (const level of [1, 2, 3] as VBMAPPLevel[]) {
-    const found = VBMAPP_DOMAINS[level].find(d => d.key === domainKey);
-    if (found) return found.labelKo;
-  }
-  return domainKey;
+  const found = ALL_DOMAINS.find(d => d.key === domainKey);
+  return found ? found.labelKo : domainKey;
 }
 
 // Program = Goal (ABA terminology)
