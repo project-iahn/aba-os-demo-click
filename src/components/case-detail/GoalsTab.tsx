@@ -219,21 +219,20 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>영역 *</Label>
-                    <Select
-                      value={newGoal.domain}
-                      onValueChange={(v) => setNewGoal({ ...newGoal, domain: v })}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {availableDomains.map((d) => (
-                          <SelectItem key={d.key} value={d.key}>{d.labelKo}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <Label>영역 *</Label>
+                      <Select
+                        value={newGoal.domain}
+                        onValueChange={(v) => setNewGoal({ ...newGoal, domain: v })}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {availableDomains.map((d) => (
+                            <SelectItem key={d.key} value={d.key}>{d.labelKo}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {newGoal.objectiveType === 'STO' && availableLTOs.length > 0 && (
