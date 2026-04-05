@@ -285,15 +285,28 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                     />
                   </div>
                   {newGoal.objectiveType === 'STO' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="targetCriteria">목표 기준</Label>
-                      <Input
-                        id="targetCriteria"
-                        value={newGoal.targetCriteria || ''}
-                        onChange={(e) => setNewGoal({ ...newGoal, targetCriteria: e.target.value })}
-                        placeholder="예: 5회 연속 80% 이상 성공"
-                      />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="targetCriteria">목표 기준</Label>
+                        <Input
+                          id="targetCriteria"
+                          value={newGoal.targetCriteria || ''}
+                          onChange={(e) => setNewGoal({ ...newGoal, targetCriteria: e.target.value })}
+                          placeholder="예: 5회 연속 80% 이상 성공"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="stimuli">체크 항목 (쉼표로 구분)</Label>
+                        <Textarea
+                          id="stimuli"
+                          value={stimuliInput}
+                          onChange={(e) => setStimuliInput(e.target.value)}
+                          placeholder="예: 엄마, 아빠, 물, 밥"
+                          className="min-h-[60px]"
+                        />
+                        <p className="text-[10px] text-muted-foreground">세션 기록 시 +, -, P를 체크할 항목들입니다</p>
+                      </div>
+                    </>
                   )}
                   <Button onClick={handleSaveGoal} className="mt-2">
                     {editingGoal ? '수정 완료' : '목표 추가'}
