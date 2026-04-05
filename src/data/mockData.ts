@@ -340,7 +340,7 @@ export const initialGoals: Program[] = [
 
   // LTO: 사회성
   { id: 'g2-lto', childId: 'c1', title: '사회성', description: '또래 및 성인과의 사회적 상호작용에서 적절한 행동을 보일 수 있다.', category: '사회성', targetCriteria: '', createdAt: '2024-09-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'LTO' },
-  { id: 'g2', childId: 'c1', title: '눈맞춤 유지', description: '대화 시 3초 이상 눈맞춤 유지하기', category: '사회성', targetCriteria: '10회 시도 중 8회 성공', createdAt: '2024-09-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g2-lto' },
+  { id: 'g2', childId: 'c1', title: '호명반응', description: '대화 시 3초 이상 호명반응하기', category: '사회성', targetCriteria: '10회 시도 중 8회 성공', createdAt: '2024-09-01', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g2-lto' },
   { id: 'g2b', childId: 'c1', title: '인사하기', description: '성인이나 또래에게 적절하게 인사(안녕/안녕하세요)할 수 있다.', category: '사회성', targetCriteria: '하루 3회 자발적 인사', createdAt: '2024-09-15', status: 'active', vbmappLevel: 1, domain: 'social', objectiveType: 'STO', parentProgramId: 'g2-lto' },
 
   // LTO: 청자반응
@@ -572,7 +572,7 @@ export const initialSessions: Session[] = [
     { programId: 'g2', total: 10, successes: 5, promptLevel: 2, problemCount: 1 },
     { programId: 'g3', total: 10, successes: 7, promptLevel: 2, problemCount: 0 },
   ]),
-  buildSession('s2', 'c1', 'th1', '2024-12-23', 50, '눈맞춤 유지 시간이 조금 늘어났습니다. 칭찬 스티커에 좋은 반응.', [
+  buildSession('s2', 'c1', 'th1', '2024-12-23', 50, '호명반응 시간이 조금 늘어났습니다. 칭찬 스티커에 좋은 반응.', [
     { programId: 'g1', total: 10, successes: 7, promptLevel: 2, problemCount: 0 },
     { programId: 'g2', total: 10, successes: 6, promptLevel: 2, problemCount: 0 },
     { programId: 'g3', total: 10, successes: 8, promptLevel: 1, problemCount: 0 },
@@ -767,8 +767,8 @@ export const initialReports: Report[] = [
     period: '2024-12',
     periodStart: '2024-12-01',
     periodEnd: '2024-12-31',
-    summary: '요청하기 목표 성공률 70%→90% 향상, 눈맞춤 유지 62%→90% 향상. 전반적으로 긍정적 발전.',
-    content: `[김하늘 아동 - 2024년 12월 관찰 보고서]\n\n※ 본 리포트는 진단/처방이 아니라, 입력된 기록을 기반으로 한 관찰 요약입니다.\n\n안녕하세요, 김영희 보호자님.\n\n12월 한 달간 하늘이의 치료 활동에 대한 관찰 내용을 전달드립니다.\n\n【기간 요약】\n이번 기간 동안 총 6회의 치료 세션이 진행되었습니다.\n\n【목표별 변화】\n\n1. 요청하기 (의사소통)\n   - 성공률: 70% → 90%로 향상 (+20%p)\n   - 촉진 수준: 부분신체(3) → 독립(0)으로 발전\n   - 마스터한 자극: 과자 줘, 물 주세요, 놀이 하고 싶어\n\n2. 눈맞춤 유지 (사회성)\n   - 성공률: 50% → 90%로 향상 (+40%p)\n   - 독립 수행 수준 도달\n\n3. 지시 따르기 (수용언어)\n   - 성공률: 70% → 100%로 향상 (+30%p)\n   - 마스터한 자극: 앉아, 일어나, 이리 와, 공 줘, 손 올려\n\n감사합니다.\n담당 치료사: 김민지`,
+    summary: '요청하기 목표 성공률 70%→90% 향상, 호명반응 62%→90% 향상. 전반적으로 긍정적 발전.',
+    content: `[김하늘 아동 - 2024년 12월 관찰 보고서]\n\n※ 본 리포트는 진단/처방이 아니라, 입력된 기록을 기반으로 한 관찰 요약입니다.\n\n안녕하세요, 김영희 보호자님.\n\n12월 한 달간 하늘이의 치료 활동에 대한 관찰 내용을 전달드립니다.\n\n【기간 요약】\n이번 기간 동안 총 6회의 치료 세션이 진행되었습니다.\n\n【목표별 변화】\n\n1. 요청하기 (의사소통)\n   - 성공률: 70% → 90%로 향상 (+20%p)\n   - 촉진 수준: 부분신체(3) → 독립(0)으로 발전\n   - 마스터한 자극: 과자 줘, 물 주세요, 놀이 하고 싶어\n\n2. 호명반응 (사회성)\n   - 성공률: 50% → 90%로 향상 (+40%p)\n   - 독립 수행 수준 도달\n\n3. 지시 따르기 (수용언어)\n   - 성공률: 70% → 100%로 향상 (+30%p)\n   - 마스터한 자극: 앉아, 일어나, 이리 와, 공 줘, 손 올려\n\n감사합니다.\n담당 치료사: 김민지`,
     createdAt: '2024-12-31T09:00:00',
     createdBy: '김민지',
     includedGoals: ['g1', 'g2', 'g3'],
