@@ -76,7 +76,9 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     status: 'active',
     objectiveType: 'STO',
     domain: 'mand',
+    stimuli: [],
   });
+  const [stimuliInput, setStimuliInput] = useState('');
 
   const canCreate = role === 'admin' || role === 'therapist';
 
@@ -115,17 +117,24 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const openEditDialog = (goal: Goal) => {
     setEditingGoal(goal);
     setNewGoal({ ...goal });
+    setStimuliInput((goal.stimuli || []).join(', '));
     setIsDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand', stimuli: [] });
+    setStimuliInput('');
     setIsDialogOpen(true);
   };
 
   const handleSaveGoal = () => {
     if (!newGoal.title || !newGoal.description) return;
+
+    const parsedStimuli = stimuliInput
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
 
     if (editingGoal) {
       updateGoal(editingGoal.id, {
@@ -136,6 +145,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
+        stimuli: newGoal.objectiveType === 'STO' ? parsedStimuli : undefined,
       });
     } else {
       const goal: Goal = {
@@ -150,13 +160,15 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         domain: newGoal.domain,
         objectiveType: newGoal.objectiveType as ObjectiveType,
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
+        stimuli: newGoal.objectiveType === 'STO' ? parsedStimuli : undefined,
       };
       addGoal(goal);
     }
 
     setIsDialogOpen(false);
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand', stimuli: [] });
+    setStimuliInput('');
   };
 
   const handleDeleteGoal = (goalId: string) => {
@@ -273,15 +285,28 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                     />
                   </div>
                   {newGoal.objectiveType === 'STO' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="targetCriteria">목표 기준</Label>
-                      <Input
-                        id="targetCriteria"
-                        value={newGoal.targetCriteria || ''}
-                        onChange={(e) => setNewGoal({ ...newGoal, targetCriteria: e.target.value })}
-                        placeholder="예: 5회 연속 80% 이상 성공"
-                      />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="targetCriteria">목표 기준</Label>
+                        <Input
+                          id="targetCriteria"
+                          value={newGoal.targetCriteria || ''}
+                          onChange={(e) => setNewGoal({ ...newGoal, targetCriteria: e.target.value })}
+                          placeholder="예: 5회 연속 80% 이상 성공"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="stimuli">체크 항목 (쉼표로 구분)</Label>
+                        <Textarea
+                          id="stimuli"
+                          value={stimuliInput}
+                          onChange={(e) => setStimuliInput(e.target.value)}
+                          placeholder="예: 엄마, 아빠, 물, 밥"
+                          className="min-h-[60px]"
+                        />
+                        <p className="text-[10px] text-muted-foreground">세션 기록 시 +, -, P를 체크할 항목들입니다</p>
+                      </div>
+                    </>
                   )}
                   <Button onClick={handleSaveGoal} className="mt-2">
                     {editingGoal ? '수정 완료' : '목표 추가'}
@@ -402,6 +427,15 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                             <div className="mt-2 rounded bg-muted/50 p-2">
                               <p className="text-[10px] text-muted-foreground">목표 기준</p>
                               <p className="text-xs">{sto.targetCriteria}</p>
+                            </div>
+                          )}
+                          {sto.stimuli && sto.stimuli.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {sto.stimuli.map((s, i) => (
+                                <span key={i} className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary font-medium">
+                                  {s}
+                                </span>
+                              ))}
                             </div>
                           )}
                           {lastSessionPerformance[sto.id] && (
