@@ -76,7 +76,9 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     status: 'active',
     objectiveType: 'STO',
     domain: 'mand',
+    stimuli: [],
   });
+  const [stimuliInput, setStimuliInput] = useState('');
 
   const canCreate = role === 'admin' || role === 'therapist';
 
@@ -115,12 +117,14 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const openEditDialog = (goal: Goal) => {
     setEditingGoal(goal);
     setNewGoal({ ...goal });
+    setStimuliInput((goal.stimuli || []).join(', '));
     setIsDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand' });
+    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand', stimuli: [] });
+    setStimuliInput('');
     setIsDialogOpen(true);
   };
 
