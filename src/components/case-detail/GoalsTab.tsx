@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronRight, Layers, Pencil, Trash2, Check } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Pencil, Trash2, Check } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -325,9 +325,6 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                   {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <Badge variant="outline" className="text-[10px]">
-                        {lto.domain ? getDomainLabel(lto.domain) : lto.category}
-                      </Badge>
                       <Badge variant="outline" className="text-[10px]">
                         {lto.domain ? getDomainLabel(lto.domain) : lto.category}
                       </Badge>
