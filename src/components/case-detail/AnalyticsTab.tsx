@@ -144,9 +144,9 @@ function SessionDetailContent({ session, goals }: { session: Session; goals: Goa
                         ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                         : 'bg-muted text-muted-foreground'
                     }`}
-                    title={`${trial.stimulus} → ${trial.result} (${promptLevelLabels[trial.promptLevel]})`}
+                    title={`${trial.stimulus} → ${trial.result === 'correct' ? '+' : trial.result === 'incorrect' ? '-' : 'P'} (${promptLevelLabels[trial.promptLevel]})`}
                   >
-                    {trial.result === 'correct' ? '✓' : trial.result === 'incorrect' ? '✗' : '—'}
+                    {trial.result === 'correct' ? '+' : trial.result === 'incorrect' ? '-' : 'P'}
                   </div>
                 ))}
               </div>
