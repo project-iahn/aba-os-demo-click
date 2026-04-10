@@ -513,222 +513,235 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredLTOs.map((lto) => {
-            const childSTOs = getSTOsForLTO(lto.id);
-            const isExpanded = expandedLTOs.has(lto.id);
-            const activeSTOs = childSTOs.filter(s => s.status === 'active').length;
+          {/* Group by domain */}
+          {(() => {
+            // Build domain groups from LTOs
+            const domainMap = new Map<string, { label: string; ltos: typeof filteredLTOs }>();
+            filteredLTOs.forEach(lto => {
+              const key = lto.domain || lto.category || '기타';
+              if (!domainMap.has(key)) {
+                domainMap.set(key, { label: lto.domain ? getDomainLabel(lto.domain) : (lto.category || '기타'), ltos: [] });
+              }
+              domainMap.get(key)!.ltos.push(lto);
+            });
 
-            return (
-              <Card key={lto.id} className="overflow-hidden">
-                <div
-                  className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => toggleLTO(lto.id)}
-                >
-                  {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
+            return Array.from(domainMap.entries()).map(([domainKey, { label: domainLabel, ltos: domainLTOs }]) => {
+              // Count totals for this domain
+              const domainSTOs = domainLTOs.flatMap(lto => getSTOsForLTO(lto.id));
+              const activeDomainSTOs = domainSTOs.filter(s => s.status === 'active').length;
+
+              return (
+                <Card key={domainKey} className="overflow-hidden">
+                  {/* Domain Header */}
+                  <div className="px-4 py-3 bg-muted/30 border-b">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-foreground">{domainLabel}</h3>
                       <Badge variant="outline" className="text-[10px]">
-                        {lto.domain ? getDomainLabel(lto.domain) : lto.category}
-                      </Badge>
-                      <Badge variant="secondary" className="text-[10px]">장기목표</Badge>
-                      <Badge className={`text-[10px] ${getStatusColor(lto.status)}`}>
-                        {lto.status === 'active' ? '활성' : lto.status === 'mastered' ? '달성' : '일시정지'}
+                        장기 {domainLTOs.length} · 단기 {activeDomainSTOs}/{domainSTOs.length}
                       </Badge>
                     </div>
-                    <h3 className="font-semibold text-sm">{lto.title}</h3>
-                    <p className="text-xs text-muted-foreground truncate">{lto.description}</p>
                   </div>
-                  <div className="flex items-center gap-2 whitespace-nowrap">
-                    <div className="text-xs text-muted-foreground">
-                      단기 {activeSTOs}/{childSTOs.length}
+
+                  {/* LTOs within this domain */}
+                  <div className="divide-y">
+                    {domainLTOs.map((lto) => {
+                      const childSTOs = getSTOsForLTO(lto.id);
+                      const isExpanded = expandedLTOs.has(lto.id);
+                      const activeSTOs = childSTOs.filter(s => s.status === 'active').length;
+
+                      return (
+                        <div key={lto.id}>
+                          <div
+                            className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/30 transition-colors"
+                            onClick={() => toggleLTO(lto.id)}
+                          >
+                            {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <Badge variant="secondary" className="text-[10px]">장기목표</Badge>
+                                <Badge className={`text-[10px] ${getStatusColor(lto.status)}`}>
+                                  {lto.status === 'active' ? '활성' : lto.status === 'mastered' ? '달성' : '일시정지'}
+                                </Badge>
+                              </div>
+                              <h4 className="font-semibold text-sm">{lto.title}</h4>
+                              {lto.description && <p className="text-xs text-muted-foreground truncate">{lto.description}</p>}
+                            </div>
+                            <div className="flex items-center gap-2 whitespace-nowrap">
+                              <span className="text-xs text-muted-foreground">단기 {activeSTOs}/{childSTOs.length}</span>
+                              {canCreate && (
+                                <>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); openEditDialog(lto); }}>
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => e.stopPropagation()}>
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>목표 삭제</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          "{lto.title}" 장기목표와 연결된 단기목표 {childSTOs.length}개도 함께 삭제됩니다.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>취소</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => { childSTOs.forEach(s => handleDeleteGoal(s.id)); handleDeleteGoal(lto.id); }}>삭제</AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                  <Switch
+                                    checked={lto.status === 'active'}
+                                    onCheckedChange={(checked) => updateGoal(lto.id, { status: checked ? 'active' : 'paused' })}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="scale-75"
+                                  />
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Expanded: STOs + target criteria */}
+                          {isExpanded && (
+                            <div className="bg-muted/10 border-t">
+                              {lto.targetCriteria && (
+                                <div className="px-4 py-2 pl-12 border-b border-dashed">
+                                  <p className="text-[10px] text-muted-foreground font-medium">달성 기준</p>
+                                  <p className="text-xs">{lto.targetCriteria}</p>
+                                </div>
+                              )}
+                              {childSTOs.length > 0 ? childSTOs.map((sto) => (
+                                <div key={sto.id} className="flex items-start gap-3 px-4 py-3 pl-12 border-b last:border-b-0">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                      <Badge variant="outline" className="text-[10px]">단기목표</Badge>
+                                      <Badge className={`text-[10px] ${getStatusColor(sto.status)}`}>
+                                        {sto.status === 'active' ? '활성' : sto.status === 'mastered' ? '달성' : '일시정지'}
+                                      </Badge>
+                                    </div>
+                                    <h4 className="font-medium text-sm">{sto.title}</h4>
+                                    {sto.description && <p className="text-xs text-muted-foreground">{sto.description}</p>}
+                                    {sto.targetCriteria && (
+                                      <div className="mt-1.5 rounded bg-muted/50 p-2">
+                                        <p className="text-[10px] text-muted-foreground">달성 기준</p>
+                                        <p className="text-xs">{sto.targetCriteria}</p>
+                                      </div>
+                                    )}
+                                    {sto.stimuli && sto.stimuli.length > 0 && (
+                                      <div className="mt-1.5 flex flex-wrap gap-1">
+                                        {sto.stimuli.map((s, i) => (
+                                          <span key={i} className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary font-medium">{s}</span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {lastSessionPerformance[sto.id] && (
+                                      <div className="mt-2 flex items-center gap-2">
+                                        <div className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
+                                          lastSessionPerformance[sto.id].rate >= 80 ? 'bg-success/10 text-success' :
+                                          lastSessionPerformance[sto.id].rate >= 50 ? 'bg-warning/10 text-warning' :
+                                          'bg-destructive/10 text-destructive'
+                                        }`}>
+                                          직전 {lastSessionPerformance[sto.id].rate}%
+                                          <span className="font-normal opacity-70">({lastSessionPerformance[sto.id].successes}/{lastSessionPerformance[sto.id].trials})</span>
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">
+                                          {new Date(lastSessionPerformance[sto.id].date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {canCreate && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditDialog(sto)}>
+                                        <Pencil className="h-3 w-3" />
+                                      </Button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>목표 삭제</AlertDialogTitle>
+                                            <AlertDialogDescription>"{sto.title}" 단기목표를 삭제하시겠습니까?</AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>취소</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteGoal(sto.id)}>삭제</AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                      <Switch
+                                        checked={sto.status === 'active'}
+                                        onCheckedChange={(checked) => updateGoal(sto.id, { status: checked ? 'active' : 'paused' })}
+                                        className="scale-75"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )) : (
+                                <div className="px-4 py-3 pl-12 text-xs text-muted-foreground">등록된 단기목표가 없습니다</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              );
+            });
+          })()}
+
+          {orphanSTOs.length > 0 && (
+            <Card className="overflow-hidden">
+              <div className="px-4 py-3 bg-muted/30 border-b">
+                <h3 className="text-sm font-bold text-foreground">미분류</h3>
+              </div>
+              <div className="divide-y">
+                {orphanSTOs.map((sto) => (
+                  <div key={sto.id} className="flex items-start gap-3 px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <Badge variant="outline" className="text-[10px]">단기목표</Badge>
+                        <Badge className={`text-[10px] ${getStatusColor(sto.status)}`}>
+                          {sto.status === 'active' ? '활성' : sto.status === 'mastered' ? '달성' : '일시정지'}
+                        </Badge>
+                      </div>
+                      <h4 className="font-medium text-sm">{sto.title}</h4>
+                      {sto.description && <p className="text-xs text-muted-foreground">{sto.description}</p>}
                     </div>
                     {canCreate && (
-                      <>
-                        <Button
-                          variant="ghost" size="icon" className="h-7 w-7"
-                          onClick={(e) => { e.stopPropagation(); openEditDialog(lto); }}
-                        >
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(sto)}>
                           <Pencil className="h-3 w-3" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                          <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>목표 삭제</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                "{lto.title}" 장기목표와 연결된 단기목표 {childSTOs.length}개도 함께 삭제됩니다.
-                              </AlertDialogDescription>
+                              <AlertDialogDescription>"{sto.title}" 단기목표를 삭제하시겠습니까?</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>취소</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => {
-                                childSTOs.forEach(s => handleDeleteGoal(s.id));
-                                handleDeleteGoal(lto.id);
-                              }}>삭제</AlertDialogAction>
+                              <AlertDialogAction onClick={() => handleDeleteGoal(sto.id)}>삭제</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                        <Switch
-                          checked={lto.status === 'active'}
-                          onCheckedChange={(checked) => {
-                            updateGoal(lto.id, { status: checked ? 'active' : 'paused' });
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="scale-75"
-                        />
-                      </>
+                      </div>
                     )}
                   </div>
-                </div>
-
-                {isExpanded && childSTOs.length > 0 && (
-                  <div className="border-t bg-muted/20">
-                    {childSTOs.map((sto) => (
-                      <div key={sto.id} className="flex items-start gap-3 p-3 pl-12 border-b last:border-b-0">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-[10px]">단기목표</Badge>
-                            <Badge className={`text-[10px] ${getStatusColor(sto.status)}`}>
-                              {sto.status === 'active' ? '활성' : sto.status === 'mastered' ? '달성' : '일시정지'}
-                            </Badge>
-                          </div>
-                          <h4 className="font-medium text-sm">{sto.title}</h4>
-                          <p className="text-xs text-muted-foreground">{sto.description}</p>
-                          {sto.targetCriteria && (
-                            <div className="mt-2 rounded bg-muted/50 p-2">
-                              <p className="text-[10px] text-muted-foreground">목표 기준</p>
-                              <p className="text-xs">{sto.targetCriteria}</p>
-                            </div>
-                          )}
-                          {sto.stimuli && sto.stimuli.length > 0 && (
-                            <div className="mt-1.5 flex flex-wrap gap-1">
-                              {sto.stimuli.map((s, i) => (
-                                <span key={i} className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary font-medium">
-                                  {s}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {lastSessionPerformance[sto.id] && (
-                            <div className="mt-2 flex items-center gap-2">
-                              <div className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${
-                                lastSessionPerformance[sto.id].rate >= 80 ? 'bg-success/10 text-success' :
-                                lastSessionPerformance[sto.id].rate >= 50 ? 'bg-warning/10 text-warning' :
-                                'bg-destructive/10 text-destructive'
-                              }`}>
-                                직전 {lastSessionPerformance[sto.id].rate}%
-                                <span className="font-normal opacity-70">
-                                  ({lastSessionPerformance[sto.id].successes}/{lastSessionPerformance[sto.id].trials})
-                                </span>
-                              </div>
-                              <span className="text-[10px] text-muted-foreground">
-                                {new Date(lastSessionPerformance[sto.id].date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        {canCreate && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <Button
-                              variant="ghost" size="icon" className="h-7 w-7"
-                              onClick={() => openEditDialog(sto)}
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>목표 삭제</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    "{sto.title}" 단기목표를 삭제하시겠습니까?
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>취소</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteGoal(sto.id)}>삭제</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                            <Switch
-                              checked={sto.status === 'active'}
-                              onCheckedChange={(checked) => {
-                                updateGoal(sto.id, { status: checked ? 'active' : 'paused' });
-                              }}
-                              className="scale-75"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {isExpanded && childSTOs.length === 0 && (
-                  <div className="border-t p-3 pl-12 text-xs text-muted-foreground">
-                    등록된 단기목표가 없습니다
-                  </div>
-                )}
-              </Card>
-            );
-          })}
-
-          {orphanSTOs.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">미분류 단기목표</h3>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {orphanSTOs.map((sto) => (
-                  <Card key={sto.id} className="transition-all hover:shadow-md">
-                    <CardContent className="p-4">
-                      <div className="mb-2 flex items-start justify-between">
-                        <Badge variant="outline" className="text-xs">{sto.domain ? getDomainLabel(sto.domain) : sto.category}</Badge>
-                        <div className="flex items-center gap-1">
-                          <Badge className={getStatusColor(sto.status)}>
-                            {sto.status === 'active' ? '활성' : sto.status === 'mastered' ? '달성' : '일시정지'}
-                          </Badge>
-                          {canCreate && (
-                            <>
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(sto)}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive">
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>목표 삭제</AlertDialogTitle>
-                                    <AlertDialogDescription>"{sto.title}" 단기목표를 삭제하시겠습니까?</AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>취소</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteGoal(sto.id)}>삭제</AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <h3 className="mb-1 font-semibold text-sm">{sto.title}</h3>
-                      <p className="text-xs text-muted-foreground">{sto.description}</p>
-                    </CardContent>
-                  </Card>
                 ))}
               </div>
-            </div>
+            </Card>
           )}
         </div>
       )}
