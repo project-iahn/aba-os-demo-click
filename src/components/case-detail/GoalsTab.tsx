@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronRight, Pencil, Trash2, Check } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Pencil, Trash2, Check, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
