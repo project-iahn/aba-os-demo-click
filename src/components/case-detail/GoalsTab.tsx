@@ -71,6 +71,20 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [showMastered, setShowMastered] = useState(false);
   const [expandedLTOs, setExpandedLTOs] = useState<Set<string>>(new Set());
+
+  // New unified form state
+  const [formDomain, setFormDomain] = useState('mand');
+  const [formCustomDomain, setFormCustomDomain] = useState('');
+  const [formLtoTitle, setFormLtoTitle] = useState('');
+  const [formLtoDescription, setFormLtoDescription] = useState('');
+  const [formStoItems, setFormStoItems] = useState<{ title: string; stimuli: string[] }[]>([{ title: '', stimuli: [] }]);
+  const [formStoDescription, setFormStoDescription] = useState('');
+  const [formTargetCriteria, setFormTargetCriteria] = useState('');
+
+  // For adding stimuli to a specific STO
+  const [stimuliInputs, setStimuliInputs] = useState<Record<number, string>>({});
+
+  // Legacy states for editing existing individual goals
   const [newGoal, setNewGoal] = useState<Partial<Goal>>({
     category: '',
     status: 'active',
@@ -79,6 +93,7 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     stimuli: [],
   });
   const [stimuliInput, setStimuliInput] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const canCreate = role === 'admin' || role === 'therapist';
 
@@ -114,8 +129,20 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
     return goals.filter(g => g.objectiveType === 'LTO' && g.childId === childId);
   }, [goals, childId]);
 
+  const resetCreateForm = () => {
+    setFormDomain('mand');
+    setFormCustomDomain('');
+    setFormLtoTitle('');
+    setFormLtoDescription('');
+    setFormStoItems([{ title: '', stimuli: [] }]);
+    setFormStoDescription('');
+    setFormTargetCriteria('');
+    setStimuliInputs({});
+  };
+
   const openEditDialog = (goal: Goal) => {
     setEditingGoal(goal);
+    setIsEditMode(true);
     setNewGoal({ ...goal });
     setStimuliInput((goal.stimuli || []).join(', '));
     setIsDialogOpen(true);
@@ -123,13 +150,87 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
 
   const openCreateDialog = () => {
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand', stimuli: [] });
-    setStimuliInput('');
+    setIsEditMode(false);
+    resetCreateForm();
     setIsDialogOpen(true);
   };
 
-  const handleSaveGoal = () => {
-    if (!newGoal.title || !newGoal.description) return;
+  const addStoItem = () => {
+    setFormStoItems(prev => [...prev, { title: '', stimuli: [] }]);
+  };
+
+  const updateStoTitle = (index: number, title: string) => {
+    setFormStoItems(prev => prev.map((item, i) => i === index ? { ...item, title } : item));
+  };
+
+  const removeStoItem = (index: number) => {
+    setFormStoItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const addStimulusToSto = (stoIndex: number) => {
+    const input = (stimuliInputs[stoIndex] || '').trim();
+    if (!input) return;
+    setFormStoItems(prev => prev.map((item, i) =>
+      i === stoIndex ? { ...item, stimuli: [...item.stimuli, input] } : item
+    ));
+    setStimuliInputs(prev => ({ ...prev, [stoIndex]: '' }));
+  };
+
+  const removeStimulusFromSto = (stoIndex: number, stimulusIndex: number) => {
+    setFormStoItems(prev => prev.map((item, i) =>
+      i === stoIndex ? { ...item, stimuli: item.stimuli.filter((_, si) => si !== stimulusIndex) } : item
+    ));
+  };
+
+  const handleSaveNew = () => {
+    if (!formLtoTitle) return;
+
+    const domainValue = formDomain === '_custom' ? formCustomDomain : formDomain;
+    const domainLabel = formDomain === '_custom' ? formCustomDomain : getDomainLabel(formDomain);
+    const now = new Date().toISOString().split('T')[0];
+
+    // Create LTO
+    const ltoId = `g${Date.now()}`;
+    const lto: Goal = {
+      id: ltoId,
+      childId,
+      title: formLtoTitle,
+      description: formLtoDescription,
+      category: domainLabel,
+      targetCriteria: formTargetCriteria,
+      createdAt: now,
+      status: 'active',
+      domain: domainValue,
+      objectiveType: 'LTO',
+    };
+    addGoal(lto);
+
+    // Create STOs
+    formStoItems.forEach((sto, i) => {
+      if (!sto.title) return;
+      const stoGoal: Goal = {
+        id: `g${Date.now() + i + 1}`,
+        childId,
+        title: sto.title,
+        description: formStoDescription,
+        category: domainLabel,
+        targetCriteria: formTargetCriteria,
+        createdAt: now,
+        status: 'active',
+        domain: domainValue,
+        objectiveType: 'STO',
+        parentProgramId: ltoId,
+        stimuli: sto.stimuli.length > 0 ? sto.stimuli : undefined,
+      };
+      addGoal(stoGoal);
+    });
+
+    setIsDialogOpen(false);
+    resetCreateForm();
+  };
+
+  const handleSaveEdit = () => {
+    if (!newGoal.title) return;
 
     const parsedStimuli = stimuliInput
       .split(',')
@@ -147,28 +248,11 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
         stimuli: newGoal.objectiveType === 'STO' ? parsedStimuli : undefined,
       });
-    } else {
-      const goal: Goal = {
-        id: `g${Date.now()}`,
-        childId,
-        title: newGoal.title,
-        description: newGoal.description,
-        category: getDomainLabel(newGoal.domain || 'mand'),
-        targetCriteria: newGoal.targetCriteria || '',
-        createdAt: new Date().toISOString().split('T')[0],
-        status: 'active',
-        domain: newGoal.domain,
-        objectiveType: newGoal.objectiveType as ObjectiveType,
-        parentProgramId: newGoal.objectiveType === 'STO' ? newGoal.parentProgramId : undefined,
-        stimuli: newGoal.objectiveType === 'STO' ? parsedStimuli : undefined,
-      };
-      addGoal(goal);
     }
 
     setIsDialogOpen(false);
     setEditingGoal(null);
-    setNewGoal({ category: '', status: 'active', objectiveType: 'STO', domain: 'mand', stimuli: [] });
-    setStimuliInput('');
+    setIsEditMode(false);
   };
 
   const handleDeleteGoal = (goalId: string) => {
