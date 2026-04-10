@@ -289,32 +289,21 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
         <div className="flex items-center gap-2">
 
           {canCreate && (
-            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) setEditingGoal(null); }}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) { setEditingGoal(null); setIsEditMode(false); } }}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-2" onClick={openCreateDialog}>
                   <Plus className="h-4 w-4" />
                   목표 추가
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-lg">
+              <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{editingGoal ? '목표 수정' : '새 치료 목표 추가'}</DialogTitle>
+                  <DialogTitle>{isEditMode ? '목표 수정' : '새 치료 목표 추가'}</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>목표 유형 *</Label>
-                      <Select
-                        value={newGoal.objectiveType}
-                        onValueChange={(v) => setNewGoal({ ...newGoal, objectiveType: v as ObjectiveType })}
-                      >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="LTO">장기목표</SelectItem>
-                          <SelectItem value="STO">단기목표</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+
+                {isEditMode ? (
+                  /* ---- Edit existing goal form ---- */
+                  <div className="grid gap-4 py-4">
                     <div className="space-y-2">
                       <Label>영역 *</Label>
                       <Select
@@ -329,73 +318,178 @@ export function GoalsTab({ childId, goals, sessions = [] }: GoalsTabProps) {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  {newGoal.objectiveType === 'STO' && availableLTOs.length > 0 && (
                     <div className="space-y-2">
-                      <Label>상위 장기목표</Label>
-                      <Select
-                        value={newGoal.parentProgramId || ''}
-                        onValueChange={(v) => setNewGoal({ ...newGoal, parentProgramId: v })}
-                      >
-                        <SelectTrigger><SelectValue placeholder="선택 (선택사항)" /></SelectTrigger>
+                      <Label htmlFor="edit-title">목표명 *</Label>
+                      <Input
+                        id="edit-title"
+                        value={newGoal.title || ''}
+                        onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-desc">설명</Label>
+                      <Textarea
+                        id="edit-desc"
+                        value={newGoal.description || ''}
+                        onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
+                      />
+                    </div>
+                    {newGoal.objectiveType === 'STO' && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-criteria">달성 기준</Label>
+                          <Input
+                            id="edit-criteria"
+                            value={newGoal.targetCriteria || ''}
+                            onChange={(e) => setNewGoal({ ...newGoal, targetCriteria: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-stimuli">하위 항목 (쉼표로 구분)</Label>
+                          <Textarea
+                            id="edit-stimuli"
+                            value={stimuliInput}
+                            onChange={(e) => setStimuliInput(e.target.value)}
+                            placeholder="예: 엄마, 아빠, 물, 밥"
+                            className="min-h-[60px]"
+                          />
+                        </div>
+                      </>
+                    )}
+                    <Button onClick={handleSaveEdit} className="mt-2">수정 완료</Button>
+                  </div>
+                ) : (
+                  /* ---- New unified create form ---- */
+                  <div className="grid gap-4 py-4">
+                    {/* 1. 영역 */}
+                    <div className="space-y-2">
+                      <Label>영역 *</Label>
+                      <Select value={formDomain} onValueChange={setFormDomain}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          {availableLTOs.map((lto) => (
-                            <SelectItem key={lto.id} value={lto.id}>{lto.title}</SelectItem>
+                          {availableDomains.map((d) => (
+                            <SelectItem key={d.key} value={d.key}>{d.labelKo}</SelectItem>
                           ))}
+                          <SelectItem value="_custom">직접 입력</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="title">목표명 *</Label>
-                    <Input
-                      id="title"
-                      value={newGoal.title || ''}
-                      onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                      placeholder={newGoal.objectiveType === 'LTO' ? '예: 맨드(요구하기)' : '예: 요청하기'}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">설명 *</Label>
-                    <Textarea
-                      id="description"
-                      value={newGoal.description || ''}
-                      onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
-                      placeholder={newGoal.objectiveType === 'LTO'
-                        ? '예: 아동이 원하는 품목이나 활동을 요구할 때, 단어를 사용할 수 있다.'
-                        : '예: 신체적 촉구 없이 2개의 단어로 원하는 품목을 요구할 수 있다.'}
-                    />
-                  </div>
-                  {newGoal.objectiveType === 'STO' && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="targetCriteria">목표 기준</Label>
+                      {formDomain === '_custom' && (
                         <Input
-                          id="targetCriteria"
-                          value={newGoal.targetCriteria || ''}
-                          onChange={(e) => setNewGoal({ ...newGoal, targetCriteria: e.target.value })}
-                          placeholder="예: 5회 연속 80% 이상 성공"
+                          value={formCustomDomain}
+                          onChange={(e) => setFormCustomDomain(e.target.value)}
+                          placeholder="영역명을 입력하세요"
+                          className="mt-2"
                         />
+                      )}
+                    </div>
+
+                    {/* 2. 장기목표 */}
+                    <div className="space-y-2">
+                      <Label>장기목표 *</Label>
+                      <Input
+                        value={formLtoTitle}
+                        onChange={(e) => setFormLtoTitle(e.target.value)}
+                        placeholder="예: 맨드(요구하기)"
+                      />
+                    </div>
+
+                    {/* 3. 장기목표 설명 */}
+                    <div className="space-y-2">
+                      <Label>장기목표 설명</Label>
+                      <Textarea
+                        value={formLtoDescription}
+                        onChange={(e) => setFormLtoDescription(e.target.value)}
+                        placeholder="필요 시 직접 기입"
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    {/* 4. 단기목표 */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>단기목표 *</Label>
+                        <Button type="button" variant="outline" size="sm" className="gap-1 text-xs h-7" onClick={addStoItem}>
+                          <Plus className="h-3 w-3" /> 단기목표 추가
+                        </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="stimuli">체크 항목 (쉼표로 구분)</Label>
-                        <Textarea
-                          id="stimuli"
-                          value={stimuliInput}
-                          onChange={(e) => setStimuliInput(e.target.value)}
-                          placeholder="예: 엄마, 아빠, 물, 밥"
-                          className="min-h-[60px]"
-                        />
-                        <p className="text-[10px] text-muted-foreground">세션 기록 시 +, -, P를 체크할 항목들입니다</p>
+                      <div className="space-y-3">
+                        {formStoItems.map((sto, idx) => (
+                          <div key={idx} className="border rounded-lg p-3 space-y-2 bg-muted/30">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground font-medium min-w-[20px]">{idx + 1}.</span>
+                              <Input
+                                value={sto.title}
+                                onChange={(e) => updateStoTitle(idx, e.target.value)}
+                                placeholder="예: 단어 모방하기"
+                                className="flex-1"
+                              />
+                              {formStoItems.length > 1 && (
+                                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeStoItem(idx)}>
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                            {/* Sub-items (stimuli) */}
+                            <div className="ml-7 space-y-1.5">
+                              <div className="flex flex-wrap gap-1">
+                                {sto.stimuli.map((s, si) => (
+                                  <Badge key={si} variant="secondary" className="text-xs gap-1 pr-1">
+                                    {s}
+                                    <button type="button" onClick={() => removeStimulusFromSto(idx, si)} className="hover:text-destructive">
+                                      <X className="h-2.5 w-2.5" />
+                                    </button>
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="flex gap-1">
+                                <Input
+                                  value={stimuliInputs[idx] || ''}
+                                  onChange={(e) => setStimuliInputs(prev => ({ ...prev, [idx]: e.target.value }))}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addStimulusToSto(idx); } }}
+                                  placeholder="하위 항목 입력 (예: 엄마)"
+                                  className="h-7 text-xs flex-1"
+                                />
+                                <Button type="button" variant="outline" size="sm" className="h-7 text-xs px-2" onClick={() => addStimulusToSto(idx)}>
+                                  항목 추가
+                                </Button>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground">세션 기록 시 +, -, P를 체크할 항목들입니다</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </>
-                  )}
-                  <Button onClick={handleSaveGoal} className="mt-2">
-                    {editingGoal ? '수정 완료' : '목표 추가'}
-                  </Button>
-                </div>
+                    </div>
+
+                    {/* 5. 단기목표 설명 */}
+                    <div className="space-y-2">
+                      <Label>단기목표 설명</Label>
+                      <Textarea
+                        value={formStoDescription}
+                        onChange={(e) => setFormStoDescription(e.target.value)}
+                        placeholder="필요 시 직접 기입"
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    {/* 6. 달성 기준 */}
+                    <div className="space-y-2">
+                      <Label>달성 기준 *</Label>
+                      <Input
+                        value={formTargetCriteria}
+                        onChange={(e) => setFormTargetCriteria(e.target.value)}
+                        placeholder="예: 5회 연속 80% 이상 성공"
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleSaveNew}
+                      className="mt-2"
+                      disabled={!formLtoTitle || !formTargetCriteria || (formDomain === '_custom' && !formCustomDomain)}
+                    >
+                      목표 추가
+                    </Button>
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
           )}
