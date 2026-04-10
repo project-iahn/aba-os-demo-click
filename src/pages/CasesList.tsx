@@ -184,6 +184,38 @@ export default function CasesList() {
               <Input id="guardianPhone" value={newChild.guardianPhone || ''} onChange={(e) => setNewChild({ ...newChild, guardianPhone: e.target.value })} />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label>세션 일정</Label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {['월','화','수','목','금','토'].map(day => {
+                const selected = (newChild.scheduleDays || '').includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      const current = (newChild.scheduleDays || '').split('·').map(s => s.trim()).filter(Boolean);
+                      const next = selected ? current.filter(d => d !== day) : [...current, day];
+                      const ordered = ['월','화','수','목','금','토'].filter(d => next.includes(d));
+                      setNewChild({ ...newChild, scheduleDays: ordered.length ? ordered.join('·') + (newChild.scheduleDays?.match(/ \d{2}:\d{2}/)?.[0] || '') : '' });
+                    }}
+                    className={`px-2.5 py-1 text-xs rounded-md border transition-colors ${selected ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border hover:bg-muted'}`}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+            <Input
+              type="time"
+              value={(newChild.scheduleDays || '').match(/\d{2}:\d{2}/)?.[0] || ''}
+              onChange={(e) => {
+                const days = (newChild.scheduleDays || '').replace(/ \d{2}:\d{2}/, '').trim();
+                setNewChild({ ...newChild, scheduleDays: days ? `${days} ${e.target.value}` : e.target.value });
+              }}
+              className="max-w-[140px]"
+            />
+          </div>
           {showTherapist && (
             <div className="space-y-2">
               <Label htmlFor="therapist">담당 치료사</Label>
